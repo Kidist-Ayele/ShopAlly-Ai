@@ -1,49 +1,41 @@
-//src/app/components/ThemeToggle.tsx
 "use client";
 
-import { useTheme } from "next-themes";
 import { useEffect, useState } from "react";
-import { FiMoon, FiSun } from "react-icons/fi";
 
 export default function ThemeToggle() {
-  const { setTheme, resolvedTheme } = useTheme();
-  const [mounted, setMounted] = useState(false);
+  const [isDark, setIsDark] = useState(false);
 
   useEffect(() => {
-    if (mounted) {
-      console.log("Current theme:", resolvedTheme);
+    // On mount, read the theme from localStorage or system preference
+    const savedTheme = localStorage.getItem("theme");
+    if (savedTheme === "dark") {
+      document.documentElement.classList.add("dark");
+      setIsDark(true);
+    } else if (savedTheme === "light") {
+      document.documentElement.classList.remove("dark");
+      setIsDark(false);
+    } else {
+      // Fallback to system preference
+      const prefersDark = window.matchMedia(
+        "(prefers-color-scheme: dark)"
+      ).matches;
+      if (prefersDark) {
+        document.documentElement.classList.add("dark");
+        setIsDark(true);
+      }
     }
-  }, [resolvedTheme, mounted]);
+  }, []);
 
-  if (!mounted)
-    return (
-      <button
-        className="bg-brand-white border-brand-gray dark:bg-brand-dark dark:border-brand-yellow p-2"
-        onClick={() => setTheme("light")}
-      >
-        <FiSun className="text-brand-dark" />
-      </button>
-    );
+  const toggleTheme = () => {
+    document.documentElement.classList.toggle("dark");
+    const newIsDark = !isDark;
+    setIsDark(newIsDark);
+    localStorage.setItem("theme", newIsDark ? "dark" : "light");
+  };
 
-  if (resolvedTheme === "dark") {
-    return (
-      <button
-        className="bg-brand-dark border-brand-yellow p-2"
-        onClick={() => setTheme("light")}
-      >
-        <FiSun className="text-brand-yellow" />
-      </button>
-    );
-  }
-
-  if (resolvedTheme === "light") {
-    return (
-      <button
-        className="bg-brand-white border-brand-gray p-2"
-        onClick={() => setTheme("dark")}
-      >
-        <FiMoon className="text-brand-dark" />
-      </button>
-    );
-  }
+  return (
+    <button onClick={toggleTheme} className="px-4 py-2 border rounded">
+      {isDark ? "Light Mode" : "Dark Mode"}
+    </button>
+  );
 }

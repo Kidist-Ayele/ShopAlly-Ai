@@ -1,6 +1,5 @@
 // tailwind.config.ts
 module.exports = {
-  darkMode: "class",
   content: [
     "./src/app/**/*.{js,ts,jsx,tsx}",
     "./src/components/**/*.{js,ts,jsx,tsx}",
@@ -9,13 +8,11 @@ module.exports = {
   theme: {
     extend: {
       colors: {
-        brand: {
-          white: "#ffffff",
-          yellow: "#ffd300",
-          gray: "#757b81",
-          dark: "#262b32",
-          black: "#090c11",
-        },
+        "brand-white": "#ffffff",
+        "brand-yellow": "#ffd300",
+        "brand-gray": "#757b81",
+        "brand-darkGray": "#262b32",
+        "brand-dark": "#090c11",
       },
     },
   },
