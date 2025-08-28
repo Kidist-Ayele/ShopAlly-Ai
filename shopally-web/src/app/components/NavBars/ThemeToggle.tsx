@@ -10,40 +10,39 @@ export default function ThemeToggle() {
   const [mounted, setMounted] = useState(false);
 
   useEffect(() => {
-    if (mounted) {
-      console.log("Current theme:", resolvedTheme);
-    }
-  }, [resolvedTheme, mounted]);
+    setMounted(true);
+  }, []);
 
-  if (!mounted)
-    return (
-      <button
-        className="bg-brand-white border-brand-gray dark:bg-brand-dark dark:border-brand-yellow p-2"
-        onClick={() => setTheme("light")}
-      >
-        <FiSun className="text-brand-dark" />
-      </button>
-    );
+  const toggleTheme = () => {
+    const newTheme = resolvedTheme === "dark" ? "light" : "dark";
+    console.log("ThemeToggle: Switching from", resolvedTheme, "to", newTheme);
+    setTheme(newTheme);
+  };
 
-  if (resolvedTheme === "dark") {
-    return (
-      <button
-        className="bg-brand-dark border-brand-yellow p-2"
-        onClick={() => setTheme("light")}
-      >
-        <FiSun className="text-brand-yellow" />
-      </button>
-    );
+  // Don't render anything until mounted to prevent hydration mismatch
+  if (!mounted) {
+    return null;
   }
 
-  if (resolvedTheme === "light") {
-    return (
-      <button
-        className="bg-brand-white border-brand-gray p-2"
-        onClick={() => setTheme("dark")}
-      >
-        <FiMoon className="text-brand-dark" />
-      </button>
-    );
-  }
+  const isDark = resolvedTheme === "dark";
+  console.log(
+    "ThemeToggle: Current theme is",
+    resolvedTheme,
+    "isDark:",
+    isDark
+  );
+
+  return (
+    <button
+      className={`p-2 rounded-lg transition-colors duration-200 ${
+        isDark
+          ? "bg-gray-800 hover:bg-gray-700 text-yellow-400 hover:text-yellow-300"
+          : "bg-white hover:bg-gray-100 text-gray-800 hover:text-gray-600 border border-gray-300"
+      }`}
+      onClick={toggleTheme}
+      aria-label={isDark ? "Switch to light mode" : "Switch to dark mode"}
+    >
+      {isDark ? <FiSun className="w-5 h-5" /> : <FiMoon className="w-5 h-5" />}
+    </button>
+  );
 }

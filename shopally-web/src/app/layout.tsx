@@ -24,9 +24,9 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="en">
+    <html lang="en" suppressHydrationWarning>
       <body
-        className={`${geistSans.variable} ${geistMono.variable} antialiased`}
+        className={`${geistSans.variable} ${geistMono.variable} antialiased bg-brand-white dark:bg-brand-dark text-brand-dark dark:text-brand-white transition-colors duration-200`}
       >
         <ThemeProviders>{children}</ThemeProviders>
       </body>
