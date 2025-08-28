@@ -1,7 +1,7 @@
 "use client";
 
 import { Trash2 } from "lucide-react";
-import { useDarkMode } from "@/app/components/profile/DarkModeContext";
+import { useDarkMode } from "@/app/components/saved-items/DarkModeContext";
 import ToggleSwitch from "@/app/components/saved-items/ToggleSwitch";
 import Rating from "./Rating";
 

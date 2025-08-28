@@ -1,15 +1,13 @@
 "use client";
 
-import { useDarkMode } from "@/app/components/profile/DarkModeContext";
-import Sidebar from "@/app/components/Sidebar";
+import { useDarkMode } from "@/app/components/saved-items/DarkModeContext";
 import OfflineAlert from "@/app/components/saved-items/OfflineAlert";
 export default function SavedItemsLayout({ children }: { children: React.ReactNode }) {
   const { isDarkMode } = useDarkMode();
 
   return (
     <div className={`min-h-screen flex transition-colors ${isDarkMode ? "bg-[#090C11]" : "bg-gray-50"}`}>
-      {/* Sidebar */}
-      <Sidebar activePage="saved-items" />
+      {/* SideNavBar */}
 
       {/* Right content */}
       <main className="flex-1 p-6 lg:p-10">
