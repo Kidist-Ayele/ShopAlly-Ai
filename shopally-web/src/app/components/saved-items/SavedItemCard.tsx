@@ -4,6 +4,7 @@ import { Trash2 } from "lucide-react";
 import { useDarkMode } from "@/app/components/saved-items/DarkModeContext";
 import ToggleSwitch from "@/app/components/saved-items/ToggleSwitch";
 import Rating from "./Rating";
+import { SavedItem } from "../../../types/SavedItems"
 
 export default function SavedItemCard({
   title,
@@ -15,23 +16,15 @@ export default function SavedItemCard({
   checked,
   priceAlertOn,
   placeholderText,
-}: {
-  title: string;
-  rating: number;
-  ratingCount: number;
-  price: string;
-  oldPrice?: string;
-  seller: string;
-  checked: string;
-  priceAlertOn?: boolean;
-  placeholderText: string;
-}) {
+}: SavedItem) {
   const { isDarkMode } = useDarkMode();
 
   return (
     <div
       className={`rounded-xl shadow border overflow-hidden mb-8 transition-colors ${
-        isDarkMode ? "bg-gray-800 border-gray-700 text-white" : "bg-white border-gray-200 text-gray-900"
+        isDarkMode
+          ? "bg-gray-800 border-gray-700 text-white"
+          : "bg-white border-gray-200 text-gray-900"
       }`}
     >
       {/* Image container */}
@@ -59,7 +52,9 @@ export default function SavedItemCard({
         {/* Price */}
         <div className="flex items-center gap-2 mt-2">
           <p className="text-xl font-bold">{price}</p>
-          {oldPrice && <span className="line-through text-gray-400 text-sm">{oldPrice}</span>}
+          {oldPrice && (
+            <span className="line-through text-gray-400 text-sm">{oldPrice}</span>
+          )}
         </div>
 
         <p className="text-xs text-gray-500 mt-1">Checked {checked} ago</p>
