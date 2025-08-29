@@ -11,12 +11,11 @@ export default withAuth(
     callbacks: {
       authorized: ({ token }) => !!token,
     },
-    // pages: {
-    //   signIn: "/SignIn",
-    // },
   }
 );
 
 export const config = {
-  matcher: ["/((?!SignUp|SignIn).*)"],
+  matcher: [
+    "/((?!api/auth|_next/static|_next/image|favicon.ico|SignUp|SignIn|data).*)",
+  ],
 };
