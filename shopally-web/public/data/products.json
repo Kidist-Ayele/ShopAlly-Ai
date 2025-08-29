@@ -63,25 +63,25 @@
       },
       {
         "id": "4",
-        "title": "Smart Fitness Tracker",
+        "title": "Advanced Smart Fitness Tracker",
         "imageUrl": "https://images5.alphacoders.com/100/1002716.jpg",
         "aiMatchPercentage": 83,
         "price": {
-          "etb": 2530,
-          "usd": 45.99,
+          "etb": 2650,
+          "usd": 49.99,
           "fxTimestamp": "2025-08-28T00:00:00Z"
         },
-        "productRating": 4.2,
-        "sellerScore": 87,
+        "productRating": 4.3,
+        "sellerScore": 88,
         "deliveryEstimate": "5-10 days",
         "summaryBullets": [
-          "7 days battery life",
-          "45g ultra-lightweight",
+          "10 days battery life",
+          "50g ultra-lightweight",
           "2 year warranty"
         ],
         "deeplinkUrl": "https://example.com/products/4"
       }
     ]
   },
-  "error": "trial error"
+  "error": null
 }
