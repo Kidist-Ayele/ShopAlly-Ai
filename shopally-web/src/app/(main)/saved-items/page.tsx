@@ -79,10 +79,8 @@ function SavedItemsPageContent() {
 // Full page wrapped with providers
 export default function SavedItemsPage() {
   return (
-    <LanguageProvider>
       <DarkModeProvider>
         <SavedItemsPageContent />
       </DarkModeProvider>
-    </LanguageProvider>
   );
 }
