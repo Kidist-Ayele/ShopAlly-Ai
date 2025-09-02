@@ -1,16 +1,15 @@
 "use client";
 
-import { useEffect, useState } from "react";
-import {Search} from "lucide-react";
-import { Sun, Moon,MessageCircleMore, ArrowRight } from "lucide-react";
-import CardComponent from "../../components/home-page-component/page"
+import { useState, useEffect } from "react";
+import { Search, Sun, Moon, MessageCircleMore, ArrowRight } from "lucide-react";
+import CardComponent from "../../components/home-page-component/page";
+import { useLanguage } from "@/hooks/useLanguage";
 
 export default function Home() {
+  const { t, currentLanguage, switchLanguage } = useLanguage(); // hook for translations
   const [darkMode, setDarkMode] = useState(false);
-  const [lang, setLang] = useState("EN");
-  const [message, setMessage] = useState<string[]>([]);
-  const [input, setinput] = useState("");
-  const [bottomSearch, setBottomSearch] = useState(false);
+  const [messages, setMessages] = useState<string[]>([]);
+  const [input, setInput] = useState("");
 
   const toggleDarkMode = () => {
     setDarkMode(!darkMode);
@@ -21,45 +20,44 @@ export default function Home() {
 
   const handleSend = () => {
     if (input.trim() === "") return;
-    setMessage([...message, input]); // add message
-    setinput(""); // clear input
+    setMessages([...messages, input]);
+    setInput("");
   };
 
-  
+  // Load messages from localStorage
   useEffect(() => {
-    const mes = localStorage.getItem("message");
-    setMessage(mes ? JSON.parse(mes) : []);
+    const stored = localStorage.getItem("messages");
+    setMessages(stored ? JSON.parse(stored) : []);
   }, []);
 
+  // Save messages to localStorage
   useEffect(() => {
-    localStorage.setItem("message", JSON.stringify(message));
-  }, [message]);
-
-
+    localStorage.setItem("messages", JSON.stringify(messages));
+  }, [messages]);
 
   return (
     <main
-      className={`min-h-screen ${
+      className={`min-h-screen flex flex-col items-center pb-24 ${
         darkMode ? "bg-[#090C11]" : "bg-[#FFFFFF]"
-      } flex flex-col items-center pb-24`}
+      }`}
     >
+      {/* Header */}
       <header
-        className={`${
-          darkMode ? "bg-[#262B32]" : "bg-[#FFFFFF]"
-        } w-full border-b ${
-          darkMode ? "border-gray-600" : "border-gray-200"
-        } dark:border-gray-700 `}
+        className={`w-full border-b ${
+          darkMode ? "bg-[#262B32] border-gray-600" : "bg-white border-gray-200"
+        }`}
       >
         <div className="max-w-7xl mx-auto flex items-center justify-between px-4 sm:px-6 lg:px-8 h-16">
           <div className="flex items-center gap-2">
-            <div className="w-6 h-6 rounded-full bg-yellow-400">
-              <img src="/images/frame.png" alt="" />
-            </div>
-            <span
-              className={`font-bold text-lg ${
-                darkMode ? "text-white" : "text-black"
-              } `}
-            >
+            <div className="w-6 h-6 lg:w-8 lg:h-8 bg-[var(--color-brand-yellow)] rounded flex items-center justify-center">
+                        <img
+                          src="/WebsiteLogo/Frame.png"
+                          alt="ShopAlly Logo"
+                          
+                          className="object-contain w-4 h-4 lg:w-5 lg:h-5"
+                        />
+                      </div>
+            <span className={`font-bold text-lg ${darkMode ? "text-white" : "text-black"}`}>
               ShopAlly
             </span>
           </div>
@@ -68,22 +66,22 @@ export default function Home() {
           <div className="flex items-center gap-4">
             {/* Language Dropdown */}
             <select
-              value={lang}
-              onChange={(e) => setLang(e.target.value)}
+              value={currentLanguage === "English" ? "EN" : "AM"}
+              onChange={switchLanguage}
               className={`border border-gray-300 dark:border-gray-600 rounded-md px-2 py-1 text-sm ${
-                darkMode ? "bg-[#757B81]" : "bg-[#F3F4F6]"
-              } dark:text-white focus:outline-none`}
+                darkMode ? "bg-[#757B81] text-white" : "bg-[#F3F4F6] text-black"
+              } focus:outline-none`}
             >
               <option value="EN">EN</option>
               <option value="AM">AM</option>
             </select>
 
-            {/* Dark/Light Mode Toggle */}
+            {/* Dark/Light Toggle */}
             <button
               onClick={toggleDarkMode}
               className={`p-2 rounded-md border border-gray-300 ${
                 darkMode ? "bg-[#757B81]" : "bg-[#F3F4F6]"
-              } hover:bg-gray-700 `}
+              } hover:bg-gray-700`}
             >
               {darkMode ? (
                 <Sun size={18} className="text-yellow-400" />
@@ -102,57 +100,57 @@ export default function Home() {
         }`}
       >
         <h1
-          className={`text-2xl sm:text-3xl lg:text-4xl lg:w-[100%] mb-4 ${
-            message.length === 0 ? "block" : "hidden"
-          }  font-bold  ${darkMode ? "text-white" : "text-black"}`}
+          className={`text-2xl sm:text-3xl lg:text-4xl mb-4 font-bold ${
+            messages.length === 0 ? "block" : "hidden"
+          } ${darkMode ? "text-white" : "text-black"}`}
         >
-          Your Smart AI Assistant for Alibaba Shopping
+          {t("Your Smart AI Assistant for Alibaba Shopping")}
         </h1>
         <p
-          className={` ${darkMode ? "text-[#FFF] " : "text-gray-400 "} ${
-            message.length === 0 ? "block" : "hidden"
-          } mb-12`}
+          className={`mb-12 ${messages.length === 0 ? "block" : "hidden"} ${
+            darkMode ? "text-[#FFF]" : "text-gray-400"
+          }`}
         >
-          Discover the perfect products on Alibaba with AI-powered
-          recommendations tailored to your needs.
+          {t(
+            "Discover the perfect products on Alibaba with AI-powered recommendations tailored to your needs."
+          )}
         </p>
 
         {/* Search Box */}
         <div
-          className={`flex items-center ${
-            message.length === 0 ? "hidden sm:flex" : "hidden"
-          }  border-gray-300 dark:border-gray-600 rounded-xl overflow-hidden shadow-sm ${
+          className={`flex items-center border-gray-300 dark:border-gray-600 rounded-xl overflow-hidden shadow-sm ${
             darkMode
-              ? "bg-[#262B32] text-[#999999] "
-              : "bg-white text-[#999999] "
-          } `}
+              ? "bg-[#262B32] text-[#999999]"
+              : "bg-white text-[#999999]"
+          } ${messages.length === 0 ? "hidden sm:flex" : "hidden"}`}
         >
           <input
             type="text"
-            placeholder="Ask me anything about products you need..."
-            onChange={(e) => setinput(e.target.value)}
+            placeholder={t("Ask me anything about products you need...")}
             value={input}
-            className={` ${
+            onChange={(e) => setInput(e.target.value)}
+            className={`flex-1 px-4 py-3 text-sm sm:text-base focus:outline-none ${
               darkMode ? "bg-gray-800 text-white" : "text-black"
-            } flex-1 px-4 py-3 text-sm sm:text-base focus:outline-none `}
+            }`}
           />
           <button
             onClick={handleSend}
-            className="bg-yellow-400 rounded-xl p-3 mr-1 my-1  flex items-center justify-center"
+            className="bg-yellow-400 rounded-xl p-3 mr-1 my-1 flex items-center justify-center"
           >
             <ArrowRight size={20} className="text-black" />
           </button>
         </div>
       </section>
 
-      {message.length === 0 ? (
+      {/* Message List or Suggestions */}
+      {messages.length === 0 ? (
         <section className="mt-10 px-4 max-w-3xl w-full">
           <h2
-            className={` ${
+            className={`text-lg font-semibold mb-4 text-center ${
               darkMode ? "text-gray-600" : "text-gray-700"
-            } text-lg font-semibold mb-4 text-center`}
+            }`}
           >
-            Try asking:
+            {t("Try asking:")}
           </h2>
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
             {[
@@ -163,12 +161,12 @@ export default function Home() {
             ].map((q, i) => (
               <button
                 key={i}
-                onClick={() => setMessage([...message, q])}
-                className={`flex items-center gap-2 border ${
+                onClick={() => setMessages([...messages, q])}
+                className={`flex items-center gap-2 border rounded-lg px-3 py-2 text-sm transition hover:bg-gray-50 ${
                   darkMode
-                    ? "border-gray-700 hover:bg-gray-700 text-[#FFFFFF]"
-                    : "hover:bg-gray-50 border-gray-300"
-                } rounded-lg px-3 py-2 text-sm text-left hover:bg-gray-50 transition`}
+                    ? "border-gray-700 hover:bg-gray-700 text-white"
+                    : "border-gray-300 hover:bg-gray-50"
+                }`}
               >
                 <MessageCircleMore className="w-4 h-4 rounded-full text-white bg-black" />
                 <span>{q}</span>
@@ -178,11 +176,9 @@ export default function Home() {
         </section>
       ) : (
         <div className="w-full max-w-3xl px-4 flex flex-col gap-2 mt-6">
-          {message.map((msg, idx) => (
+          {messages.map((msg, idx) => (
             <div key={idx} className="flex justify-end">
-              <div
-                className={`max-w-1/2 break-words px-4 py-2 rounded-xl bg-yellow-400 text-black`}
-              >
+              <div className="max-w-1/2 break-words px-4 py-2 rounded-xl bg-yellow-400 text-black">
                 {msg}
               </div>
             </div>
@@ -190,35 +186,29 @@ export default function Home() {
         </div>
       )}
 
-       
-
-      {/* {search bar if there is message} */}
+      {/* Mobile Search */}
       <section
-        className={`max-w-3xl w-full fixed bottom-1 ${
-          message.length === 0 ? "block sm:hidden" : "block"
-        }   text-center mt-12  px-4 ${
-          darkMode ? "bg-[#090C11]" : "bg-[#FFFFFF]"
-        }`}
+        className={`max-w-3xl w-full fixed bottom-1 text-center px-4 ${
+          messages.length === 0 ? "block sm:hidden" : "block"
+        } ${darkMode ? "bg-[#090C11]" : "bg-[#FFFFFF]"}`}
       >
         <div
-          className={`flex items-center border  border-gray-300 dark:border-gray-600 rounded-xl overflow-hidden shadow-sm ${
-            darkMode
-              ? "bg-[#262B32] text-[#999999] "
-              : "bg-white text-[#999999] "
-          } `}
+          className={`flex items-center border border-gray-300 dark:border-gray-600 rounded-xl overflow-hidden shadow-sm ${
+            darkMode ? "bg-[#262B32] text-[#999999]" : "bg-white text-[#999999]"
+          }`}
         >
           <input
             type="text"
-            placeholder="Ask me anything about products you need..."
-            onChange={(e) => setinput(e.target.value)}
+            placeholder={t("Ask me anything about products you need...")}
             value={input}
-            className={` ${
+            onChange={(e) => setInput(e.target.value)}
+            className={`flex-1 px-4 py-3 text-sm sm:text-base focus:outline-none ${
               darkMode ? "bg-gray-800 text-white" : "text-black"
-            } flex-1 px-4 py-3 text-sm sm:text-base focus:outline-none `}
+            }`}
           />
           <button
             onClick={handleSend}
-            className="bg-yellow-400 rounded-xl p-3 mr-1 my-1  flex items-center justify-center"
+            className="bg-yellow-400 rounded-xl p-3 mr-1 my-1 flex items-center justify-center"
           >
             <ArrowRight size={20} className="text-black" />
           </button>
