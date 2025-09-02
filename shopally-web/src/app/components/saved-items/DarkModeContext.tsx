@@ -1,6 +1,6 @@
 "use client";
 
-import { createContext, useContext, useState, ReactNode } from "react";
+import { createContext, ReactNode, useContext, useState } from "react";
 
 interface DarkModeContextType {
   isDarkMode: boolean;
@@ -9,7 +9,6 @@ interface DarkModeContextType {
 
 const DarkModeContext = createContext<DarkModeContextType | undefined>(
   undefined
-
 );
 
 export function DarkModeProvider({ children }: { children: ReactNode }) {
