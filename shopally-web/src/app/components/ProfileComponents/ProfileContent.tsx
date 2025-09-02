@@ -3,7 +3,7 @@
 import { useState, useRef, useEffect } from "react";
 import Image from "next/image";
 import { useDarkMode } from "./DarkModeContext";
-import { useLanguage } from "../../components/LanguageContext";
+import { useLanguage } from "../../../hooks/useLanguage"
 import { LoadingSpinner } from "../LoadingSpinner";
 
 export default function ProfileContent() {

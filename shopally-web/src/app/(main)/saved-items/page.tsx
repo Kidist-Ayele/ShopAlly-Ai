@@ -5,10 +5,8 @@ import {
   DarkModeProvider,
   useDarkMode,
 } from "@/app/components/ProfileComponents/DarkModeContext"; 
-import {
-  LanguageProvider,
-  useLanguage,
-} from "@/app/components/LanguageContext";
+import { useLanguage } from "@/hooks/useLanguage";
+import { LanguageProvider } from "@/providers/LanguageProvider";
 import SavedItemsContent from "@/app/components/saved-items/SavedItemsContent";
 import { useSavedItems } from "@/hooks/useSavedItems";
 import { ReactNode } from "react";

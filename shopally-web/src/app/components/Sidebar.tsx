@@ -3,7 +3,7 @@
 import Image from "next/image";
 import { useRouter } from "next/navigation";
 import { useDarkMode } from "./ProfileComponents/DarkModeContext";
-import { useLanguage } from "./LanguageContext";
+import { useLanguage } from "../../hooks/useLanguage";
 
 interface SidebarProps {
   activePage?: string;
@@ -18,7 +18,7 @@ export default function Sidebar({ activePage = "profile" }: SidebarProps) {
     {
       id: "home",
       label: t("Home"),
-      path: "/",
+      path: "/home",
       icon: (
         <svg
           className="w-4 h-4 lg:w-5 lg:h-5"
