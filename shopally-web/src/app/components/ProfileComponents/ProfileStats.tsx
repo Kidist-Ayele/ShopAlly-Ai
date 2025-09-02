@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from "react";
 import { useDarkMode } from "./DarkModeContext";
-import { useLanguage } from "../../components/LanguageContext";
+import { useLanguage } from "../../../hooks/useLanguage";
 import { LoadingSpinner } from "../LoadingSpinner";
 
 export default function ProfileStats() {
