@@ -5,9 +5,18 @@ import type { SavedItem, SavedItemUI } from "@/types/types";
 import { useCallback, useEffect, useState } from "react";
 
 const LOCAL_DB_KEY = "itemsList";
+const ORDERS_DB_KEY = "ordersList";
 
 interface LocalDb {
   savedItems: SavedItem[];
+}
+
+interface Order {
+  id: string;
+  productId: string;
+  productTitle: string;
+  price: { etb: number; usd: number; fxTimestamp: string };
+  orderDate: string;
 }
 
 const loadLocalDb = (): { savedItems: SavedItemUI[] } => {
@@ -23,9 +32,21 @@ const loadLocalDb = (): { savedItems: SavedItemUI[] } => {
 
 export const useSavedItems = (maxItems = 50) => {
   const [savedItems, setSavedItems] = useState<SavedItemUI[]>([]);
+  const [orders, setOrders] = useState<Order[]>([]);
 
   useEffect(() => {
     setSavedItems(loadLocalDb().savedItems);
+    // Load orders from localStorage
+    if (typeof window !== "undefined") {
+      try {
+        const savedOrders = localStorage.getItem(ORDERS_DB_KEY);
+        if (savedOrders) {
+          setOrders(JSON.parse(savedOrders));
+        }
+      } catch {
+        setOrders([]);
+      }
+    }
   }, []);
 
   const saveItem = useCallback((item: SavedItem) => {
@@ -98,6 +119,22 @@ export const useSavedItems = (maxItems = 50) => {
     });
   }, []);
 
+  const placeOrder = useCallback((productId: string, productTitle: string, price: { etb: number; usd: number; fxTimestamp: string }) => {
+    const newOrder: Order = {
+      id: `order_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`,
+      productId,
+      productTitle,
+      price,
+      orderDate: new Date().toISOString(),
+    };
+
+    setOrders((prev) => {
+      const newOrders = [...prev, newOrder];
+      localStorage.setItem(ORDERS_DB_KEY, JSON.stringify(newOrders));
+      return newOrders;
+    });
+  }, []);
+
   const clearAll = useCallback(() => {
     setSavedItems([]);
     localStorage.removeItem(LOCAL_DB_KEY);
@@ -105,10 +142,12 @@ export const useSavedItems = (maxItems = 50) => {
 
   return {
     savedItems,
+    orders,
     saveItem,
     removeItem,
     alertChange,
     updateItemPrice,
+    placeOrder,
     clearAll,
   };
 };

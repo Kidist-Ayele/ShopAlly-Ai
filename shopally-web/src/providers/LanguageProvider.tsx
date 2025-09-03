@@ -26,6 +26,9 @@ export function LanguageProvider({ children }: { children: ReactNode }) {
   const langCode = currentLanguage === "Amharic" ? "am-ET" : "en-US"; // :white_check_mark: mapping
   const translateText = useCallback(
     async (text: string) => {
+      // Skip translation for ShopAlly product name
+      if (text.includes("ShopAlly")) return text;
+
       if (currentLanguage === "English") return text;
       const cacheKey = `${text}_${currentLanguage}`;
       if (translationCache.has(cacheKey))
@@ -60,6 +63,9 @@ export function LanguageProvider({ children }: { children: ReactNode }) {
   };
   const t = useCallback(
     (key: string) => {
+      // Skip translation for ShopAlly product name
+      if (key.includes("ShopAlly")) return key;
+
       if (currentLanguage === "English") return key;
       if (translations[key]) return translations[key];
       translateText(key).then((translated) =>
