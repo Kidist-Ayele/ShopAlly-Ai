@@ -2,11 +2,10 @@
 "use client";
 
 import { useDarkMode } from "@/app/components/ProfileComponents/DarkModeContext";
-import { useLanguage } from "@/hooks/useLanguage";
 import ToggleSwitch from "@/app/components/saved-items/ToggleSwitch";
+import { useLanguage } from "@/hooks/useLanguage";
 import { Trash2 } from "lucide-react";
 import { SavedItemUI } from "../../../types/types";
-import Rating from "./Rating";
 
 // Extend SavedItemUI with optional callbacks
 interface SavedItemCardProps extends SavedItemUI {
@@ -42,7 +41,7 @@ export default function SavedItemCard({
 
   return (
     <div
-      className={`rounded-2xl border shadow p-6 space-y-6 w-full max-w-md mx-auto lg:max-w-none transition-colors ${
+      className={`rounded-2xl border shadow p-6 space-y-6 w-full max-w-md mx-auto sm:max-w-none transition-colors ${
         isDarkMode
           ? "bg-gray-800 border-gray-700 text-white"
           : "bg-white border-gray-200 text-gray-900"
@@ -79,10 +78,12 @@ export default function SavedItemCard({
       {/* Body */}
       <div className="space-y-4">
         <h3
-          className="text-lg font-semibold transition-colors"
+          className="text-lg font-semibold transition-colors cursor-pointer"
           style={{ color: "var(--color-text-primary)" }}
+          title={title} // full title on hover
         >
-          {title}
+          {title.split(" ").slice(0, 5).join(" ")}
+          {title.split(" ").length > 5 ? " ..." : ""}
         </h3>
 
         <div className="flex items-center justify-between">
@@ -91,9 +92,9 @@ export default function SavedItemCard({
             style={{ color: "var(--color-accent-primary)" }}
           >
             {price.etb
-              ? `${price.etb} ETB`
+              ? `${Number(price.etb).toFixed(2)} ETB`
               : price.usd
-              ? `$${price.usd}`
+              ? `$${Number(price.usd).toFixed(2)}`
               : "N/A"}
           </span>
           <div
