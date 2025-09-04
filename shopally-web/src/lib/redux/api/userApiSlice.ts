@@ -4,18 +4,26 @@ import { AlertCreateResponse } from "@/types/SavedItems/AlertCreateResponse";
 import { AlertDeleteResponse } from "@/types/SavedItems/AlertDeleteResponse";
 import { CreateAlert } from "@/types/SavedItems/SavedItems";
 import { ProductResponse } from "@/types/types";
+import { getOrCreateDeviceId } from "@/utils/deviceId";
 import { createApi, fetchBaseQuery } from "@reduxjs/toolkit/query/react";
 import { getLanguage } from "../languageBridge";
 
 export const userApi = createApi({
   reducerPath: "userApi",
-  baseQuery: fetchBaseQuery({ baseUrl: "/", prepareHeaders: (headers) => {
+  baseQuery: fetchBaseQuery({
+    baseUrl: "/api/v1",
+    prepareHeaders: (headers) => {
       const langCode = getLanguage();
       if (langCode) {
         headers.set("Accept-Language", langCode);
       }
+
+      const deviceId = getOrCreateDeviceId();
+      headers.set("x-device-id", deviceId);
+
       return headers;
-    },}),
+    },
+  }),
   endpoints: (builder) => ({
     createAlert: builder.mutation<AlertCreateResponse, CreateAlert>({
       query: (data) => ({

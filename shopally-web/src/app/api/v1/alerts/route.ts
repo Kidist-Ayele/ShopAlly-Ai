@@ -1,4 +1,4 @@
-//src/app/api/alerts/route.ts
+//src/app/api/v1/alerts/route.ts
 import { getLanguage } from "@/lib/redux/languageBridge";
 import { AlertCreateResponse } from "@/types/SavedItems/AlertCreateResponse";
 import { NextRequest, NextResponse } from "next/server";
@@ -10,10 +10,11 @@ export async function POST(
 ): Promise<NextResponse<AlertCreateResponse>> {
   try {
     const body = await req.json();
-    const { productId, currentPriceETB } = body;
+    const { productId, currentPriceETB, deviceId: deviceIdFromBody } = body;
 
-    // ✅ Take deviceId from headers instead of body
-    const deviceId = req.headers.get("x-device-id");
+    // ✅ Take deviceId from headers first, fallback to body
+    const deviceIdFromHeader = req.headers.get("x-device-id");
+    const deviceId = deviceIdFromHeader || deviceIdFromBody;
 
     if (!productId || !deviceId || !currentPriceETB) {
       return NextResponse.json(
@@ -22,15 +23,14 @@ export async function POST(
       );
     }
 
-
     const langCode = getLanguage() || "en-US";
 
-    const response = await fetch(`${API_BASE}/api/alerts`, {
+    const response = await fetch(`${API_BASE}/api/v1/alerts`, {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
         "X-Device-ID": deviceId,
-        "Accept-Language": langCode, // TODO: make dynamic later
+        "Accept-Language": langCode,
       },
       body: JSON.stringify({ productId, deviceId, currentPriceETB }),
     });
@@ -47,35 +47,14 @@ export async function POST(
       );
     }
 
+    console.log("Alert created successfully1:", data);
+
     return NextResponse.json({ data, error: null }, { status: 201 });
   } catch (error) {
-    console.error("POST /api/alerts error:", error);
+    console.error("POST /api/v1/alerts error:", error);
     return NextResponse.json(
       { error: "Something went wrong", data: null },
       { status: 500 }
     );
   }
 }
-
-// MOCK Implementation of Alerts API
-
-// //src/app/api/alerts/[alertId]/route.ts
-// import { NextResponse } from "next/server";
-
-// let alerts: string[] = [];
-
-// export async function POST(req: Request) {
-//   const { productId } = await req.json();
-//   if (!productId) {
-//     return NextResponse.json(
-//       { error: "productId is required" },
-//       { status: 400 }
-//     );
-//   }
-
-//   alerts.push(productId);
-//   return NextResponse.json(
-//     { data: { status: "Alert created successfully", alertId: productId } },
-//     { status: 201 }
-//   );
-// }
