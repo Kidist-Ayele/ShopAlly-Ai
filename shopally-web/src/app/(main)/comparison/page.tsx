@@ -33,12 +33,57 @@ export default function ComparePage() {
           color: "var(--color-text-primary)",
         }}
       >
-        <p
-          className="text-lg transition-colors"
-          style={{ color: "var(--color-text-secondary)" }}
-        >
-          {t("Loading comparison...")}
-        </p>
+        <div className="text-center">
+          {/* Loading Spinner */}
+          <div className="flex justify-center mb-4">
+            <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-yellow-400"></div>
+          </div>
+          <p
+            className="text-lg transition-colors"
+            style={{ color: "var(--color-text-secondary)" }}
+          >
+            {t("Loading comparison...")}
+          </p>
+        </div>
+      </div>
+    );
+  }
+
+  // Show empty state if no comparison data
+  if (comparison.length === 0) {
+    return (
+      <div
+        className="min-h-screen flex items-center justify-center transition-colors"
+        style={{
+          backgroundColor: "var(--color-bg-primary)",
+          color: "var(--color-text-primary)",
+        }}
+      >
+        <div className="text-center max-w-md mx-4">
+          <div className="w-20 h-20 bg-yellow-400 rounded-full flex items-center justify-center mx-auto mb-6">
+            <span className="text-2xl">⚖️</span>
+          </div>
+          <h2
+            className="text-xl font-semibold mb-4 transition-colors"
+            style={{ color: "var(--color-text-primary)" }}
+          >
+            {t("No Products to Compare")}
+          </h2>
+          <p
+            className="text-sm mb-6 transition-colors"
+            style={{ color: "var(--color-text-secondary)" }}
+          >
+            {t(
+              "Add products to your comparison list from the home page to see them here."
+            )}
+          </p>
+          <a
+            href="/home"
+            className="inline-block bg-yellow-400 hover:bg-yellow-500 text-black font-medium py-3 px-6 rounded-xl transition-colors duration-200"
+          >
+            {t("Go to Home")}
+          </a>
+        </div>
       </div>
     );
   }
