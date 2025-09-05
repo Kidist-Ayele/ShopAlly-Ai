@@ -16,6 +16,14 @@ export default withAuth(
 
 export const config = {
   matcher: [
-    "/((?!api/auth|_next/static|_next/image|favicon.ico|SignUp|SignIn|data|WebsiteLogo).*)",
+    // "/((?!api/auth|_next/static|_next/image|favicon.ico|SignUp|SignIn|data|profile|comparison|saved-items|home|WebsiteLogo/Frame.png).*)",
+    "/((?!api/auth|_next/static|_next/image|favicon.ico|images|WebsiteLogo).*)",
+    // Only protect specific existing routes
+    // "/",
+    // "/home",
+    // "/comparison", 
+    // "/saved-items",
+    // "/profile",
+    // "/how-it-works",
   ],
 };
