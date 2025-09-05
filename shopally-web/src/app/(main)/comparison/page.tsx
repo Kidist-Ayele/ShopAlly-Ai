@@ -4,11 +4,10 @@
 import { AIRecommendation } from "@/app/components/ComparisonComponents/AIRecommendation";
 import { ComparisonTable } from "@/app/components/ComparisonComponents/ComparisonTable";
 import { ProductCard } from "@/app/components/ComparisonComponents/ProductCard";
-import type { ComparisonItem } from "@/types/Compare/Comparison";
-import { fetchComparison } from "@/utils/Compare/CompareUtils";
-import { useEffect, useState } from "react";
 import { useDarkMode } from "@/app/components/ProfileComponents/DarkModeContext";
 import { useLanguage } from "@/hooks/useLanguage";
+import type { ComparisonItem } from "@/types/Compare/Comparison";
+import { useEffect, useState } from "react";
 
 export default function ComparePage() {
   const [comparison, setComparison] = useState<ComparisonItem[]>([]);
@@ -16,197 +15,13 @@ export default function ComparePage() {
   const { isDarkMode } = useDarkMode();
   const { t } = useLanguage();
 
+  // Load comparison from localStorage
   useEffect(() => {
-    async function loadData() {
-      try {
-        const items = await fetchComparison();
-        if (items && items.length > 0) {
-          setComparison(items);
-        } else {
-          // Fallback to mock data if API fails or returns empty
-          const mockComparison: ComparisonItem[] = [
-            {
-              product: {
-                id: "1",
-                title: "Advanced Smart Fitness Tracker",
-                imageUrl:
-                  "https://via.placeholder.com/300x300/4F46E5/FFFFFF?text=Product+1",
-                price: {
-                  usd: 45,
-                  etb: 2650,
-                  fxTimestamp: new Date().toISOString(),
-                },
-                productRating: 4.3,
-                sellerScore: 95,
-                deliveryEstimate: "7-14 days",
-                aiMatchPercentage: 92,
-                summaryBullets: [
-                  "High quality product with advanced sensors",
-                  "Fast shipping available worldwide",
-                  "Water resistant and durable design",
-                ],
-                deeplinkUrl: "#",
-              },
-              synthesis: {
-                pros: ["High quality", "Good price", "Fast delivery"],
-                cons: ["Long delivery time", "Limited warranty"],
-                isBestValue: true,
-              },
-            },
-            {
-              product: {
-                id: "2",
-                title: "Premium Wireless Headphones",
-                imageUrl:
-                  "https://via.placeholder.com/300x300/10B981/FFFFFF?text=Product+2",
-                price: {
-                  usd: 89,
-                  etb: 5200,
-                  fxTimestamp: new Date().toISOString(),
-                },
-                productRating: 4.7,
-                sellerScore: 98,
-                deliveryEstimate: "5-10 days",
-                aiMatchPercentage: 88,
-                summaryBullets: [
-                  "Premium sound quality with noise cancellation",
-                  "Long battery life up to 30 hours",
-                  "Comfortable over-ear design",
-                ],
-                deeplinkUrl: "#",
-              },
-              synthesis: {
-                pros: ["Excellent sound", "Long battery", "Comfortable"],
-                cons: ["Higher price", "Bulky design"],
-                isBestValue: false,
-              },
-            },
-            {
-              product: {
-                id: "3",
-                title: "Smart Home Security Camera",
-                imageUrl:
-                  "https://via.placeholder.com/300x300/F59E0B/FFFFFF?text=Product+3",
-                price: {
-                  usd: 67,
-                  etb: 3900,
-                  fxTimestamp: new Date().toISOString(),
-                },
-                productRating: 4.5,
-                sellerScore: 92,
-                deliveryEstimate: "10-15 days",
-                aiMatchPercentage: 85,
-                summaryBullets: [
-                  "1080p HD video quality",
-                  "Night vision and motion detection",
-                  "Easy mobile app control",
-                ],
-                deeplinkUrl: "#",
-              },
-              synthesis: {
-                pros: ["Good video quality", "Night vision", "Easy setup"],
-                cons: ["Medium delivery time", "Basic features"],
-                isBestValue: false,
-              },
-            },
-          ];
-          setComparison(mockComparison);
-        }
-      } catch (err) {
-        console.error("Error fetching comparison:", err);
-        // Use mock data as fallback
-        const mockComparison: ComparisonItem[] = [
-          {
-            product: {
-              id: "1",
-              title: "Advanced Smart Fitness Tracker",
-              imageUrl:
-                "https://via.placeholder.com/300x300/4F46E5/FFFFFF?text=Product+1",
-              price: {
-                usd: 45,
-                etb: 2650,
-                fxTimestamp: new Date().toISOString(),
-              },
-              productRating: 4.3,
-              sellerScore: 95,
-              deliveryEstimate: "7-14 days",
-              aiMatchPercentage: 92,
-              summaryBullets: [
-                "High quality product with advanced sensors",
-                "Fast shipping available worldwide",
-                "Water resistant and durable design",
-              ],
-              deeplinkUrl: "#",
-            },
-            synthesis: {
-              pros: ["High quality", "Good price", "Fast delivery"],
-              cons: ["Long delivery time", "Limited warranty"],
-              isBestValue: true,
-            },
-          },
-          {
-            product: {
-              id: "2",
-              title: "Premium Wireless Headphones",
-              imageUrl:
-                "https://via.placeholder.com/300x300/10B981/FFFFFF?text=Product+2",
-              price: {
-                usd: 89,
-                etb: 5200,
-                fxTimestamp: new Date().toISOString(),
-              },
-              productRating: 4.7,
-              sellerScore: 98,
-              deliveryEstimate: "5-10 days",
-              aiMatchPercentage: 88,
-              summaryBullets: [
-                "Premium sound quality with noise cancellation",
-                "Long battery life up to 30 hours",
-                "Comfortable over-ear design",
-              ],
-              deeplinkUrl: "#",
-            },
-            synthesis: {
-              pros: ["Excellent sound", "Long battery", "Comfortable"],
-              cons: ["Higher price", "Bulky design"],
-              isBestValue: false,
-            },
-          },
-          {
-            product: {
-              id: "3",
-              title: "Smart Home Security Camera",
-              imageUrl:
-                "https://via.placeholder.com/300x300/F59E0B/FFFFFF?text=Product+3",
-              price: {
-                usd: 67,
-                etb: 3900,
-                fxTimestamp: new Date().toISOString(),
-              },
-              productRating: 4.5,
-              sellerScore: 92,
-              deliveryEstimate: "10-15 days",
-              aiMatchPercentage: 85,
-              summaryBullets: [
-                "1080p HD video quality",
-                "Night vision and motion detection",
-                "Easy mobile app control",
-              ],
-              deeplinkUrl: "#",
-            },
-            synthesis: {
-              pros: ["Good video quality", "Night vision", "Easy setup"],
-              cons: ["Medium delivery time", "Basic features"],
-              isBestValue: false,
-            },
-          },
-        ];
-        setComparison(mockComparison);
-      } finally {
-        setLoading(false);
-      }
+    const data = localStorage.getItem("comparisonResults");
+    if (data) {
+      setComparison(JSON.parse(data));
     }
-    loadData();
+    setLoading(false);
   }, []);
 
   if (loading) {
@@ -236,14 +51,12 @@ export default function ComparePage() {
         color: "var(--color-text-primary)",
       }}
     >
-      {/* Page Title */}
       <h1
         className="text-2xl sm:text-3xl font-bold mb-6 sm:mb-8 transition-colors"
         style={{ color: "var(--color-text-primary)" }}
       >
         {t("Product Comparison")}
       </h1>
-
       <p
         className="text-sm sm:text-base mb-6 sm:mb-8 transition-colors"
         style={{ color: "var(--color-text-secondary)" }}
@@ -258,7 +71,7 @@ export default function ComparePage() {
         ))}
       </div>
 
-      {/* Pass comparison directly */}
+      {/* Comparison Table & AI Recommendation */}
       <ComparisonTable comparison={comparison} />
       <AIRecommendation comparison={comparison} />
     </div>
