@@ -40,14 +40,20 @@ export const userApi = createApi({
     }),
     searchProducts: builder.mutation<
       ProductResponse,
-      { query: string; priceMaxETB: number | null; minRating: number | null }
+      { query: string; priceMaxETB?: number | null; minRating?: number | null }
     >({
-      query: (data) => ({
-        url: "/search",
-        method: "POST",
-        body: data,
-      }),
+      query: ({ query, priceMaxETB, minRating }) => {
+        const params = new URLSearchParams({ q: query });
+        if (priceMaxETB) params.append("priceMaxETB", String(priceMaxETB));
+        if (minRating) params.append("minRating", String(minRating));
+
+        return {
+          url: `/search?${params.toString()}`, // ✅ use query params
+          method: "GET",
+        };
+      },
     }),
+
     compareProducts: builder.mutation<
       ComparisonResponse,
       { products: Product[] }

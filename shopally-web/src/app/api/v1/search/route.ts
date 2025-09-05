@@ -1,18 +1,18 @@
-//src/app/api/products/route.ts
 import { getLanguage } from "@/lib/redux/languageBridge";
 import { ProductResponse } from "@/types/types";
 import { NextRequest, NextResponse } from "next/server";
 
 const API_BASE = process.env.API_BASE;
 
-export async function POST(
+export async function GET(
   req: NextRequest
 ): Promise<NextResponse<ProductResponse>> {
   try {
-    const body = await req.json();
-    const { query, priceMaxETB, minRating } = body;
+    const { searchParams } = new URL(req.url);
+    const query = searchParams.get("q");
+    const priceMaxETB = searchParams.get("priceMaxETB");
+    const minRating = searchParams.get("minRating");
 
-    // ✅ Get deviceId from headers
     const deviceId = req.headers.get("x-device-id");
 
     if (!query || !deviceId) {
@@ -24,31 +24,47 @@ export async function POST(
 
     const langCode = getLanguage() || "en-US";
 
-    const backendRes = await fetch(`${API_BASE}/api/products/search`, {
-      method: "POST",
+    const url = `${API_BASE}/api/v1/search?${new URLSearchParams({
+      q: query,
+      ...(priceMaxETB ? { priceMaxETB } : {}),
+      ...(minRating ? { minRating } : {}),
+    }).toString()}`;
+
+    const backendRes = await fetch(url, {
       headers: {
-        "Content-Type": "application/json",
         "X-Device-ID": deviceId,
-        "Accept-Language": langCode, // TODO: make dynamic later
+        "Accept-Language": langCode,
       },
-      body: JSON.stringify({ query, priceMaxETB, minRating }),
     });
 
-    const data = await backendRes.json();
+    const contentType = backendRes.headers.get("content-type") || "";
+    const rawText = await backendRes.text();
+
+    console.log("🔎 Backend status:", backendRes.status);
+    console.log("🔎 Backend content-type:", contentType);
+    console.log("🔎 Backend raw response:", rawText.slice(0, 300));
+
+    let data: any;
+    try {
+      data = JSON.parse(rawText);
+    } catch (err) {
+      console.error("❌ Failed to parse JSON:", err);
+      return NextResponse.json(
+        { error: "Backend returned invalid JSON", data: null },
+        { status: 500 }
+      );
+    }
 
     if (!backendRes.ok) {
       return NextResponse.json(
-        {
-          error: data?.status || "Failed to search products",
-          data: null,
-        },
+        { error: data?.status || "Failed to search products", data: null },
         { status: backendRes.status }
       );
     }
 
-    return NextResponse.json({ data, error: null }, { status: 200 });
+    return NextResponse.json(data, { status: 200 });
   } catch (error) {
-    console.error("POST /api/products/search error:", error);
+    console.error("GET /api/v1/search error:", error);
     return NextResponse.json(
       { error: "Something went wrong", data: null },
       { status: 500 }
