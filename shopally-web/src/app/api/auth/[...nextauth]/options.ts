@@ -18,6 +18,10 @@ export const options: NextAuthOptions = {
     }),
   ],
 
+  pages: {
+    signIn: '/api/auth/custom-signin',
+  },
+
   callbacks: {
     async signIn() {
       return true;
