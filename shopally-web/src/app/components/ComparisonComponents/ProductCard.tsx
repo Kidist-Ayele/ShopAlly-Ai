@@ -1,12 +1,12 @@
 // //src/app/components/ComparePage/ProductCard.tsx
-import { Product } from "@/types/Compare/Comparison";
-import { FaHeart } from "react-icons/fa";
-import { FaCheck } from "react-icons/fa6";
-import { IoIosStar } from "react-icons/io";
 import { useDarkMode } from "@/app/components/ProfileComponents/DarkModeContext";
 import { useLanguage } from "@/hooks/useLanguage";
 import { useSavedItems } from "@/hooks/useSavedItems";
+import { Product } from "@/types/Compare/Comparison";
 import { SavedItem } from "@/types/types";
+import { FaHeart } from "react-icons/fa";
+import { FaCheck } from "react-icons/fa6";
+import { IoIosStar } from "react-icons/io";
 
 export const ProductCard: React.FC<{ product: Product }> = ({ product }) => {
   const { isDarkMode } = useDarkMode();
@@ -29,12 +29,12 @@ export const ProductCard: React.FC<{ product: Product }> = ({ product }) => {
         aiMatchPercentage: product.aiMatchPercentage,
         price: product.price,
         productRating: product.productRating,
-        sellerScore: product.sellerScore,
+        sellerScore: product.numberSold, // adjust if you have a correct sellerScore field
         deliveryEstimate: product.deliveryEstimate,
         summaryBullets: product.summaryBullets,
         deeplinkUrl: product.deeplinkUrl,
       };
-      saveItem(savedItem);
+      saveItem(savedItem); // saves it to localStorage via your hook
     }
   };
 
@@ -72,8 +72,8 @@ export const ProductCard: React.FC<{ product: Product }> = ({ product }) => {
             style={{ color: "var(--color-accent-primary)" }}
           >
             {product.price.etb
-              ? `${product.price.etb} ETB`
-              : `$${product.price.usd}`}
+              ? `${Number(product.price.etb).toFixed(2)} ETB`
+              : `$${Number(product.price.usd).toFixed(2)}`}
           </span>
           <div
             className="flex items-center gap-1 text-sm transition-colors"
@@ -84,7 +84,7 @@ export const ProductCard: React.FC<{ product: Product }> = ({ product }) => {
               style={{ fill: "var(--color-text-primary)" }}
             />
             <span>
-              {product.productRating} ({product.sellerScore})
+              {product.productRating} ({product.numberSold} {t("reviews")})
             </span>
           </div>
         </div>
@@ -95,7 +95,7 @@ export const ProductCard: React.FC<{ product: Product }> = ({ product }) => {
           >
             {t("Key Features")}
           </h4>
-          {product.summaryBullets.slice(0, 2).map((feature, i) => (
+          {product.summaryBullets.map((feature, i) => (
             <div key={i} className="flex items-center gap-2">
               <FaCheck
                 className="w-4 h-4 transition-colors"
@@ -117,9 +117,9 @@ export const ProductCard: React.FC<{ product: Product }> = ({ product }) => {
               backgroundColor: "var(--color-accent-primary)",
               color: "var(--color-text-button)",
             }}
-            onClick={() => placeOrder(product.id, product.title, product.price)}
+            onClick={() => window.open(product.deeplinkUrl, "_blank")}
           >
-            {t("Buy from Alibaba")}
+            {t("Buy from AliExpress")}
           </button>
           <button
             className="p-3 rounded-xl hover:opacity-80 transition-colors"

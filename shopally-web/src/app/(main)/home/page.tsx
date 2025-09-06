@@ -138,7 +138,7 @@ export default function Home() {
           title: p.title,
           imageUrl: p.imageUrl,
           aiMatchPercentage: p.aiMatchPercentage,
-          price: p.price, // ✅ full price object
+          price: p.price,
           productRating: p.productRating,
           sellerScore: p.sellerScore,
           deliveryEstimate: p.deliveryEstimate,
@@ -149,15 +149,20 @@ export default function Home() {
 
       const res = await compareProducts(payload).unwrap();
       console.log("Comparison result:", res);
-      alert(`Comparison result received! Check console for details.`);
+
+      // ✅ Save the response to localStorage
+      localStorage.setItem(
+        "comparisonResults",
+        JSON.stringify(res.data.products) // full ComparisonItem objects
+      );
+
       // ✅ Clear compare list storage after success
       localStorage.removeItem("compareProduct");
       setCompareList([]);
 
       // ✅ Redirect to compare page
-      window.location.href = "/compare";
+      window.location.href = "/comparison";
     } catch (err: any) {
-      // ✅ Better error logging
       console.error("❌ Compare API failed:", err);
 
       if (err?.data) {
@@ -173,7 +178,6 @@ export default function Home() {
       }
     }
   };
-
   return (
     <main
       className={`min-h-screen flex flex-col items-center pb-24 ${
@@ -182,7 +186,7 @@ export default function Home() {
     >
       {/* Compare Products Button - moved above chat section */}
       {compareList.length >= 2 && (
-        <div className="w-full max-w-3xl px-4 mt-6">
+        <div className="w-full max-w-3xl px-4 mt-6 sticky top-4 z-50">
           <button
             onClick={handleCompare}
             className="w-full bg-yellow-400 text-black py-3 rounded-xl font-semibold shadow-lg"

@@ -1,13 +1,13 @@
 // components/compare/AIRecommendation.tsx
-import { BsLightningChargeFill } from "react-icons/bs";
-import { FaCircleCheck } from "react-icons/fa6";
-import { Check, X } from "lucide-react";
-import { IoIosStar } from "react-icons/io";
-import { TiDelete } from "react-icons/ti";
 import { useDarkMode } from "@/app/components/ProfileComponents/DarkModeContext";
 import { useLanguage } from "@/hooks/useLanguage";
 import { useSavedItems } from "@/hooks/useSavedItems";
 import type { ComparisonItem } from "@/types/Compare/Comparison";
+import { Check, X } from "lucide-react";
+import { BsLightningChargeFill } from "react-icons/bs";
+import { FaCircleCheck } from "react-icons/fa6";
+import { IoIosStar } from "react-icons/io";
+import { TiDelete } from "react-icons/ti";
 
 type AIRecommendationProps = {
   comparison: ComparisonItem[];
@@ -31,11 +31,12 @@ export const AIRecommendation: React.FC<AIRecommendationProps> = ({
   }));
 
   // Pick top product by aiMatchPercentage, tie-breaker: sellerScore
-  const recommendedProduct = [...comparison].sort(
-    (a, b) =>
-      b.product.aiMatchPercentage - a.product.aiMatchPercentage ||
-      b.product.sellerScore - a.product.sellerScore
-  )[0].product;
+  // Find the recommended product by isBestValue
+  const recommendedItem = comparison.find((item) => item.synthesis.isBestValue);
+
+  if (!recommendedItem) return null; // fallback in case API doesn't mark any
+
+  const recommendedProduct = recommendedItem.product;
 
   return (
     <div
@@ -124,7 +125,7 @@ export const AIRecommendation: React.FC<AIRecommendationProps> = ({
                   className="text-sm transition-colors"
                   style={{ color: "var(--color-text-secondary)" }}
                 >
-                  ({recommendedProduct.sellerScore})
+                  ({recommendedProduct.numberSold} {t("sold")})
                 </span>
               </div>
             </div>
@@ -136,26 +137,13 @@ export const AIRecommendation: React.FC<AIRecommendationProps> = ({
             className="px-4 py-2 rounded-lg font-medium hover:opacity-80 transition-colors"
             style={{
               backgroundColor: "var(--color-accent-primary)",
-              color: "var(--color-text-button)",
-            }}
-          >
-            {t("View Details")}
-          </button>
-          <button
-            className="px-4 py-2 rounded-lg font-medium hover:opacity-80 transition-colors"
-            style={{
-              backgroundColor: "var(--color-bg-tertiary)",
               color: "var(--color-text-primary)",
             }}
             onClick={() =>
-              placeOrder(
-                recommendedProduct.id,
-                recommendedProduct.title,
-                recommendedProduct.price
-              )
+              window.open(recommendedProduct.deeplinkUrl, "_blank")
             }
           >
-            {t("Buy from Alibaba")}
+            {t("Buy from AliExpress")}
           </button>
         </div>
       </div>
@@ -252,7 +240,13 @@ export const AIRecommendation: React.FC<AIRecommendationProps> = ({
                 <div
                   className="h-2 rounded-full transition-colors"
                   style={{
-                    backgroundColor: "var(--color-accent-primary)",
+                    backgroundColor:
+                      analysis.product.id &&
+                      comparison.find(
+                        (c) => c.product.id === analysis.product.id
+                      )?.synthesis.isBestValue
+                        ? "var(--color-accent-primary)" // yellow
+                        : "var(--color-text-tertiary)", // gray
                     width: `${analysis.score}%`,
                   }}
                 />
