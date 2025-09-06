@@ -1,7 +1,10 @@
-//src/types/Compare/Comparisons.ts
+// src/types/Compare/Comparisons.ts
+import { Product } from "../types"; // ✅ reuse main Product
+
 export interface ComparisonResponse {
   data: {
-    comparison: ComparisonItem[];
+    products: ComparisonItem[];
+    overallComparison: OverallComparison;
   };
   error?: string | null;
 }
@@ -11,26 +14,41 @@ export interface ComparisonItem {
   synthesis: Synthesis;
 }
 
-export interface Product {
-  id: string;
-  title: string;
-  imageUrl: string;
-  aiMatchPercentage: number;
-  price: {
-    etb: number;
-    usd: number;
-    fxTimestamp: string; // ISO date string
-  };
-  productRating: number;
-  sellerScore: number;
-  deliveryEstimate: string;
-  summaryBullets: string[];
-  deeplinkUrl: string;
+export interface Price {
+  etb: number;
+  usd: number;
+  fxTimestamp: string; // ISO date string
 }
 
 export interface Synthesis {
   pros: string[];
   cons: string[];
   isBestValue: boolean;
-  features?: Record<string, string>; // flexible key-value for features
+  features: Record<string, string>;
+}
+
+export interface OverallComparison {
+  bestValueProduct: string;
+  bestValueLink: string;
+  bestValuePrice: Price;
+  keyHighlights: string[];
+  summary: string;
+}
+
+export interface ComparePayload {
+  products: Array<
+    Pick<
+      Product,
+      | "id"
+      | "title"
+      | "imageUrl"
+      | "aiMatchPercentage"
+      | "price"
+      | "productRating"
+      | "sellerScore"
+      | "deliveryEstimate"
+      | "summaryBullets"
+      | "deeplinkUrl"
+    >
+  >;
 }

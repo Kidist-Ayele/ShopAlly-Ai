@@ -1,10 +1,11 @@
 import AuthProvider from "@/providers/AuthProvider";
 import { LanguageProvider } from "@/providers/LanguageProvider";
 import ReduxProvider from "@/providers/ReduxProvider";
-import { DarkModeProvider } from "./components/ProfileComponents/DarkModeContext";
-import SharedLayout from "./components/SharedLayout";
 import type { Metadata } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
+import FirebaseSWRegistrar from "./components/FirebaseSWRegistrar";
+import { DarkModeProvider } from "./components/ProfileComponents/DarkModeContext";
+import SharedLayout from "./components/SharedLayout";
 import "./globals.css";
 
 const geistSans = Geist({
@@ -41,6 +42,7 @@ export default function RootLayout({
           <DarkModeProvider>
             <AuthProvider>
               <ReduxProvider>
+                <FirebaseSWRegistrar />
                 <SharedLayout>{children}</SharedLayout>
               </ReduxProvider>
             </AuthProvider>

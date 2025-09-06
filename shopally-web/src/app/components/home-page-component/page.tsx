@@ -44,7 +44,7 @@ const CardComponent: React.FC<CardComponentProps> = ({ product }) => {
         imageUrl: product.imageUrl,
         aiMatchPercentage: product.aiMatchPercentage,
         price: product.price,
-        productRating: product.productRating,
+        productRating: product.productRating || 0,
         sellerScore: product.sellerScore,
         deliveryEstimate: product.deliveryEstimate,
         summaryBullets: product.summaryBullets,
@@ -54,30 +54,64 @@ const CardComponent: React.FC<CardComponentProps> = ({ product }) => {
     }
   };
 
+  const handleSaveItem = () => {
+    const savedItem: SavedItem = {
+      id: product.id,
+      title: product.title,
+      imageUrl: product.imageUrl,
+      aiMatchPercentage: product.aiMatchPercentage,
+      price: product.price,
+      productRating: product.productRating || 0,
+      sellerScore: product.sellerScore,
+      deliveryEstimate: product.deliveryEstimate,
+      summaryBullets: product.summaryBullets,
+      deeplinkUrl: product.deeplinkUrl,
+    };
+    saveItem(savedItem);
+    alert("Item saved!");
+  };
+
   function addToCompare() {
-    setCompareList((prev) => {
-      const updated = [...prev, product];
-      localStorage.setItem("compareProduct", JSON.stringify(updated));
+    const stored = localStorage.getItem("compareProduct");
+    const list: Product[] = stored ? JSON.parse(stored) : [];
 
-      // 🔔 Notify other components
-      window.dispatchEvent(new Event("storage"));
+    // check if already exists
+    if (list.some((p) => p.id === product.id)) {
+      console.log("⚠️ Product already in compare list:", product.title);
+      return;
+    }
 
-      return updated;
-    });
+    // enforce max 4
+    if (list.length >= 4) {
+      console.log("⚠️ Cannot add more than 4 products to compare list");
+      alert("You can only compare up to 4 products.");
+      return;
+    }
+
+    const updated = [...list, product];
+    localStorage.setItem("compareProduct", JSON.stringify(updated));
+    setCompareList(updated);
     setAdded(true);
+
+    console.log("✅ Added to compare list:", product.title, updated);
+
+    // 🔔 Notify other components
+    window.dispatchEvent(new Event("storage"));
   }
 
   function removeFromCompare() {
-    setCompareList((prev) => {
-      const updated = prev.filter((p) => p.id !== product.id);
-      localStorage.setItem("compareProduct", JSON.stringify(updated));
+    const stored = localStorage.getItem("compareProduct");
+    const list: Product[] = stored ? JSON.parse(stored) : [];
 
-      // 🔔 Notify other components
-      window.dispatchEvent(new Event("storage"));
-
-      return updated;
-    });
+    const updated = list.filter((p) => p.id !== product.id);
+    localStorage.setItem("compareProduct", JSON.stringify(updated));
+    setCompareList(updated);
     setAdded(false);
+
+    console.log("❌ Removed from compare list:", product.title, updated);
+
+    // 🔔 Notify other components
+    window.dispatchEvent(new Event("storage"));
   }
 
   useEffect(() => {

@@ -8,7 +8,10 @@ import {
   useCompareProductsMutation,
   useSearchProductsMutation,
 } from "@/lib/redux/api/userApiSlice";
-import { Product } from "@/types/types";
+import { ComparePayload } from "@/types/Compare/Comparison";
+import { ApiErrorResponse, Product } from "@/types/types";
+import { SerializedError } from "@reduxjs/toolkit";
+import { FetchBaseQueryError } from "@reduxjs/toolkit/query";
 import { ArrowRight, Loader2, MessageCircleMore } from "lucide-react";
 import { useEffect, useState } from "react";
 
@@ -165,13 +168,13 @@ export default function Home() {
     try {
       console.log("Sending compare list:", compareList);
 
-      const payload = {
+      const payload: ComparePayload = {
         products: compareList.map((p) => ({
           id: p.id,
           title: p.title,
           imageUrl: p.imageUrl,
           aiMatchPercentage: p.aiMatchPercentage,
-          price: p.price, // ✅ full price object
+          price: p.price,
           productRating: p.productRating,
           sellerScore: p.sellerScore,
           deliveryEstimate: p.deliveryEstimate,
@@ -182,31 +185,42 @@ export default function Home() {
 
       const res = await compareProducts(payload).unwrap();
       console.log("Comparison result:", res);
-      alert(`Comparison result received! Check console for details.`);
+
+      // ✅ Save the response to localStorage
+      localStorage.setItem(
+        "comparisonResults",
+        JSON.stringify(res.data.products) // full ComparisonItem objects
+      );
+
       // ✅ Clear compare list storage after success
       localStorage.removeItem("compareProduct");
       setCompareList([]);
 
       // ✅ Redirect to compare page
-      window.location.href = "/compare";
-    } catch (err: any) {
-      // ✅ Better error logging
+      window.location.href = "/comparison";
+    } catch (err: unknown) {
       console.error("❌ Compare API failed:", err);
 
-      if (err?.data) {
-        console.error("Error data:", err.data);
-        console.error("Error status:", err.status);
-        alert(
-          `Compare failed: ${
-            err.data?.error?.message || "Unknown error"
-          } (status ${err.status})`
-        );
-      } else {
-        alert("Compare failed due to an unexpected error. Check console.");
+      if (typeof err === "object" && err !== null) {
+        const e = err as FetchBaseQueryError | SerializedError;
+
+        if ("data" in e) {
+          // 👇 cast `data` to your API error type
+          const data = e.data as ApiErrorResponse | undefined;
+          console.error("Error data:", data);
+
+          alert(`Compare failed: ${data?.error?.message ?? "Unknown error"}`);
+          return;
+        }
+
+        if ("status" in e) {
+          console.error("Error status:", (e as FetchBaseQueryError).status);
+        }
       }
+
+      alert("Compare failed due to an unexpected error. Check console.");
     }
   };
-
   return (
     <main
       className={`min-h-screen flex flex-col items-center pb-24 ${
@@ -215,7 +229,7 @@ export default function Home() {
     >
       {/* Compare Products Button - moved above chat section */}
       {compareList.length >= 2 && (
-        <div className="w-full max-w-3xl px-4 mt-6">
+        <div className="w-full max-w-3xl px-4 mt-6 sticky top-4 z-50">
           <button
             onClick={handleCompare}
             className="w-full bg-yellow-400 text-black py-3 rounded-xl font-semibold shadow-lg"
