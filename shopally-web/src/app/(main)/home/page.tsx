@@ -8,7 +8,10 @@ import {
   useCompareProductsMutation,
   useSearchProductsMutation,
 } from "@/lib/redux/api/userApiSlice";
-import { Product } from "@/types/types";
+import { ComparePayload } from "@/types/Compare/Comparison";
+import { ApiErrorResponse, Product } from "@/types/types";
+import { SerializedError } from "@reduxjs/toolkit";
+import { FetchBaseQueryError } from "@reduxjs/toolkit/query";
 import { ArrowRight, Loader2, MessageCircleMore } from "lucide-react";
 import { useEffect, useState } from "react";
 
@@ -132,7 +135,7 @@ export default function Home() {
     try {
       console.log("Sending compare list:", compareList);
 
-      const payload = {
+      const payload: ComparePayload = {
         products: compareList.map((p) => ({
           id: p.id,
           title: p.title,
@@ -162,20 +165,27 @@ export default function Home() {
 
       // ✅ Redirect to compare page
       window.location.href = "/comparison";
-    } catch (err: any) {
+    } catch (err: unknown) {
       console.error("❌ Compare API failed:", err);
 
-      if (err?.data) {
-        console.error("Error data:", err.data);
-        console.error("Error status:", err.status);
-        alert(
-          `Compare failed: ${
-            err.data?.error?.message || "Unknown error"
-          } (status ${err.status})`
-        );
-      } else {
-        alert("Compare failed due to an unexpected error. Check console.");
+      if (typeof err === "object" && err !== null) {
+        const e = err as FetchBaseQueryError | SerializedError;
+
+        if ("data" in e) {
+          // 👇 cast `data` to your API error type
+          const data = e.data as ApiErrorResponse | undefined;
+          console.error("Error data:", data);
+
+          alert(`Compare failed: ${data?.error?.message ?? "Unknown error"}`);
+          return;
+        }
+
+        if ("status" in e) {
+          console.error("Error status:", (e as FetchBaseQueryError).status);
+        }
       }
+
+      alert("Compare failed due to an unexpected error. Check console.");
     }
   };
   return (

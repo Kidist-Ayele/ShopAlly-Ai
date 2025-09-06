@@ -1,4 +1,5 @@
 // src/types/Compare/Comparisons.ts
+import { Product } from "../types"; // ✅ reuse main Product
 
 export interface ComparisonResponse {
   data: {
@@ -13,23 +14,6 @@ export interface ComparisonItem {
   synthesis: Synthesis;
 }
 
-export interface Product {
-  id: string;
-  title: string;
-  imageUrl: string;
-  aiMatchPercentage: number;
-  price: Price;
-  productRating: number;
-  deliveryEstimate: string;
-  description: string;
-  productSmallImageUrls: string[] | null;
-  numberSold: number;
-  summaryBullets: string[];
-  deeplinkUrl: string;
-  taxRate: number;
-  discount: number;
-}
-
 export interface Price {
   etb: number;
   usd: number;
@@ -40,7 +24,7 @@ export interface Synthesis {
   pros: string[];
   cons: string[];
   isBestValue: boolean;
-  features: Record<string, string>; // flexible key-value
+  features: Record<string, string>;
 }
 
 export interface OverallComparison {
@@ -49,4 +33,22 @@ export interface OverallComparison {
   bestValuePrice: Price;
   keyHighlights: string[];
   summary: string;
+}
+
+export interface ComparePayload {
+  products: Array<
+    Pick<
+      Product,
+      | "id"
+      | "title"
+      | "imageUrl"
+      | "aiMatchPercentage"
+      | "price"
+      | "productRating"
+      | "sellerScore"
+      | "deliveryEstimate"
+      | "summaryBullets"
+      | "deeplinkUrl"
+    >
+  >;
 }

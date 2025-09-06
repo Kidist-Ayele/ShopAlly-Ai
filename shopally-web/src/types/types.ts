@@ -22,6 +22,7 @@ export interface User {
 }
 
 // --- Product ---
+// types/types.ts
 export interface Product {
   id: string;
   title: string;
@@ -37,6 +38,13 @@ export interface Product {
   deliveryEstimate: string;
   summaryBullets: string[];
   deeplinkUrl: string;
+
+  // Fields you don’t send to backend
+  description?: string;
+  productSmallImageUrls?: string[];
+  numberSold?: number;
+  taxRate?: number;
+  discount?: number;
 }
 
 export interface ProductResponse {
@@ -145,4 +153,10 @@ export interface CompareItem {
   pros?: string[];
   cons?: string[];
   isBestValue?: boolean;
+}
+
+export interface ApiErrorResponse {
+  error: {
+    message: string;
+  };
 }
