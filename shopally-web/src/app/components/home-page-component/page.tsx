@@ -1,16 +1,58 @@
 // src/app/components/home-page-component/page.tsx
 import { Product } from "@/types/types";
 import { Star } from "lucide-react";
-import React, { useEffect, useState } from "react";
+import React, { useState, useEffect } from "react";
+import { FaHeart } from "react-icons/fa";
+import { useSavedItems } from "@/hooks/useSavedItems";
+import { SavedItem } from "@/types/types";
 
 interface CardComponentProps {
-  mode: "dark" | "light";
   product: Product;
 }
 
-const CardComponent: React.FC<CardComponentProps> = ({ mode, product }) => {
+const CardComponent: React.FC<CardComponentProps> = ({ product }) => {
   const [compareList, setCompareList] = useState<Product[]>([]);
   const [added, setAdded] = useState(false);
+  const [imageLoaded, setImageLoaded] = useState(false);
+  const [imageError, setImageError] = useState(false);
+  const [retryCount, setRetryCount] = useState(0);
+  const { savedItems, saveItem, removeItem, placeOrder } = useSavedItems();
+
+  // Check if this product is already saved
+  const isSaved = savedItems.some((item) => item.id === product.id);
+
+  // Function to get alternative image URL
+  const getImageUrl = () => {
+    if (retryCount === 0) {
+      return product.imageUrl;
+    }
+    // Try alternative URL format or proxy
+    return `https://images.weserv.nl/?url=${encodeURIComponent(
+      product.imageUrl
+    )}`;
+  };
+
+  const handleHeartClick = () => {
+    if (isSaved) {
+      // Remove from saved items
+      removeItem(product.id);
+    } else {
+      // Add to saved items
+      const savedItem: SavedItem = {
+        id: product.id,
+        title: product.title,
+        imageUrl: product.imageUrl,
+        aiMatchPercentage: product.aiMatchPercentage,
+        price: product.price,
+        productRating: product.productRating,
+        sellerScore: product.sellerScore,
+        deliveryEstimate: product.deliveryEstimate,
+        summaryBullets: product.summaryBullets,
+        deeplinkUrl: product.deeplinkUrl,
+      };
+      saveItem(savedItem);
+    }
+  };
 
   function addToCompare() {
     setCompareList((prev) => {
@@ -50,54 +92,135 @@ const CardComponent: React.FC<CardComponentProps> = ({ mode, product }) => {
 
   return (
     <div
-      className={`w-full h-fit break-words border-[2px] rounded-[12px] ${
-        mode === "dark"
-          ? "border-[#262B32] bg-[#262B32]"
-          : "border-[#E5E7EB] bg-[#FFFFFF]"
-      }`}
+      className="rounded-2xl border shadow p-6 space-y-6 w-full max-w-md mx-auto lg:max-w-none transition-colors"
+      style={{
+        backgroundColor: "var(--color-bg-card)",
+        borderColor: "var(--color-border-primary)",
+        boxShadow: "var(--color-shadow)",
+      }}
     >
-      <div className="h-fit grid place-items-center rounded-tl-[11px] rounded-tr-[11px] bg-amber-300 overflow-hidden">
+      <div
+        className="aspect-square rounded-xl overflow-hidden transition-colors relative"
+        style={{
+          backgroundColor: "var(--color-bg-tertiary)",
+        }}
+      >
+        {/* Loading skeleton - only show when image is not loaded and no error */}
+        {!imageLoaded && !imageError && (
+          <div className="absolute inset-0 bg-gray-200 animate-pulse flex items-center justify-center">
+            <div className="w-8 h-8 border-2 border-gray-300 border-t-blue-500 rounded-full animate-spin"></div>
+          </div>
+        )}
+
         <img
-          src={product.imageUrl}
+          src={getImageUrl()}
           alt={product.title}
-          className="w-full h-full object-cover"
+          className={`w-full h-full object-cover transition-opacity duration-300 ${
+            imageError ? "opacity-0" : "opacity-100"
+          }`}
+          loading="lazy"
+          referrerPolicy="no-referrer"
+          crossOrigin="anonymous"
+          onLoad={() => {
+            setImageLoaded(true);
+            setImageError(false);
+          }}
+          onError={(e) => {
+            if (retryCount < 1) {
+              setRetryCount((prev) => prev + 1);
+              setImageError(false);
+            } else {
+              setImageError(true);
+              setImageLoaded(false);
+            }
+          }}
         />
+
+        {/* Fallback image - only show when there's an error */}
+        {imageError && (
+          <div className="absolute inset-0 bg-gray-200 flex items-center justify-center">
+            <div className="text-center text-gray-500">
+              <div className="w-12 h-12 mx-auto mb-2 bg-gray-300 rounded-full flex items-center justify-center">
+                <span className="text-2xl">📷</span>
+              </div>
+              <p className="text-sm">Image not available</p>
+            </div>
+          </div>
+        )}
       </div>
 
-      <div className="h-[60%] p-4">
-        <h6
-          className={`text-[14px] ${
-            mode === "light" ? "text-[#262B32]" : "text-[#FFFFFF]"
-          } font-semibold`}
+      <div className="space-y-4">
+        <h3
+          className="text-lg font-semibold transition-colors line-clamp-2"
+          style={{ color: "var(--color-text-primary)" }}
         >
           {product.title}
-        </h6>
-        <div className="justify-between flex items-center mt-3 mb-4">
-          <h6 className="text-[#FFD300] text-[18px]">${product.price.usd}</h6>
-          <div className="flex items-center gap-1">
-            <span
-              className={`${
-                mode === "dark" ? "text-white" : "text-[#262B32]"
-              } text-[12px]`}
-            >
-              {product.productRating}
-            </span>
-            <Star className="w-3 h-3 text-yellow-400" />
+        </h3>
+
+        <div className="flex items-center justify-between">
+          <span
+            className="text-2xl font-bold transition-colors"
+            style={{ color: "var(--color-accent-primary)" }}
+          >
+            ${product.price.usd}
+          </span>
+          <div
+            className="flex items-center gap-1 text-sm transition-colors"
+            style={{ color: "var(--color-text-tertiary)" }}
+          >
+            <Star
+              className="w-4 h-4 transition-colors"
+              style={{ fill: "var(--color-text-primary)" }}
+            />
+            <span>{product.productRating}</span>
           </div>
         </div>
-        <button
-          onClick={added ? removeFromCompare : addToCompare}
-          className={`${
-            mode === "dark" ? "bg-[#757B81]" : "bg-[#F3F4F6]"
-          } w-full rounded-[5px] mb-2 h-[32px]`}
-        >
-          {!added ? "Add To Compare" : "Remove From Compare"}
-        </button>
-        <button className="border-[2px] w-full rounded-[5px] h-[36px] text-[#FFD300] border-[#FFD300]">
-          <a href={product.deeplinkUrl} target="_blank" rel="noreferrer">
-            Buy On Alibaba
-          </a>
-        </button>
+
+        <div className="space-y-3">
+          <button
+            onClick={added ? removeFromCompare : addToCompare}
+            className="w-full font-medium py-3 px-6 rounded-xl hover:opacity-80 transition-colors border"
+            style={{
+              backgroundColor: "var(--color-bg-tertiary)",
+              color: "var(--color-text-primary)",
+              borderColor: "var(--color-border-primary)",
+            }}
+          >
+            {!added ? "Add To Compare" : "Remove From Compare"}
+          </button>
+
+          <div className="flex gap-3">
+            <button
+              className="flex-1 font-medium py-3 px-6 rounded-xl hover:opacity-80 transition-colors"
+              style={{
+                backgroundColor: "var(--color-accent-primary)",
+                color: "var(--color-text-button)",
+              }}
+            >
+              <a href={product.deeplinkUrl} target="_blank" rel="noreferrer">
+                Buy On Alibaba
+              </a>
+            </button>
+
+            <button
+              className="p-3 rounded-xl hover:opacity-80 transition-colors"
+              style={{
+                backgroundColor: "var(--color-bg-tertiary)",
+                color: "var(--color-text-primary)",
+              }}
+              onClick={handleHeartClick}
+            >
+              <FaHeart
+                className="w-5 h-5 transition-colors"
+                style={{
+                  color: isSaved
+                    ? "var(--color-accent-primary)"
+                    : "var(--color-text-primary)",
+                }}
+              />
+            </button>
+          </div>
+        </div>
       </div>
     </div>
   );
