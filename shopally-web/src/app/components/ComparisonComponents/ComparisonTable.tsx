@@ -1,9 +1,9 @@
 // components/compare/ComparisonTable.tsx
+import { useDarkMode } from "@/app/components/ProfileComponents/DarkModeContext";
+import { useLanguage } from "@/hooks/useLanguage";
 import type { ComparisonItem } from "@/types/Compare/Comparison";
 import { FC } from "react";
 import { IoIosStar } from "react-icons/io";
-import { useDarkMode } from "@/app/components/ProfileComponents/DarkModeContext";
-import { useLanguage } from "@/hooks/useLanguage";
 
 interface ComparisonTableProps {
   comparison: ComparisonItem[];
@@ -133,7 +133,7 @@ export const ComparisonTable: FC<ComparisonTableProps> = ({ comparison }) => {
                 className="px-2 sm:px-3 lg:px-4 py-2 sm:py-3 text-center text-xs sm:text-sm transition-colors"
                 style={{ color: "var(--color-text-secondary)" }}
               >
-                {c.product.sellerScore}
+                {c.product.numberSold} {t("sold")}
               </td>
             ))}
           </tr>

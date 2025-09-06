@@ -19,7 +19,12 @@ export default function ComparePage() {
   useEffect(() => {
     const data = localStorage.getItem("comparisonResults");
     if (data) {
-      setComparison(JSON.parse(data));
+      try {
+        const parsed = JSON.parse(data);
+        setComparison(parsed); // parsed is already an array of { product, synthesis }
+      } catch (e) {
+        console.error("❌ Failed to parse comparison results:", e);
+      }
     }
     setLoading(false);
   }, []);
@@ -90,7 +95,7 @@ export default function ComparePage() {
 
   return (
     <div
-      className="min-h-screen flex flex-col p-4 lg:p-8 transition-colors"
+      className="min-h-screen flex flex-col gap-4 p-4 lg:p-8 transition-colors"
       style={{
         backgroundColor: "var(--color-bg-primary)",
         color: "var(--color-text-primary)",
@@ -111,8 +116,11 @@ export default function ComparePage() {
 
       {/* Product cards */}
       <div className="grid gap-4 sm:gap-6 lg:gap-8 md:grid-cols-2 lg:grid-cols-3 mb-8">
-        {comparison.map((c) => (
-          <ProductCard key={c.product.id} product={c.product} />
+        {comparison.map((item, index) => (
+          <ProductCard
+            key={item.product.id || index}
+            product={item.product} // Pass the product object
+          />
         ))}
       </div>
 

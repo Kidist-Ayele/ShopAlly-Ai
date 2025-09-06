@@ -1,4 +1,5 @@
 // src/app/components/home-page-component/page.tsx
+import { useSavedItems } from "@/hooks/useSavedItems";
 import { Product } from "@/types/types";
 import { Star } from "lucide-react";
 import React, { useEffect, useState } from "react";
@@ -9,33 +10,56 @@ interface CardComponentProps {
 }
 
 const CardComponent: React.FC<CardComponentProps> = ({ mode, product }) => {
+  const { saveItem } = useSavedItems();
   const [compareList, setCompareList] = useState<Product[]>([]);
   const [added, setAdded] = useState(false);
 
+  const handleSaveItem = () => {
+    saveItem(product);
+    alert("Item saved!");
+  };
+
   function addToCompare() {
-    setCompareList((prev) => {
-      const updated = [...prev, product];
-      localStorage.setItem("compareProduct", JSON.stringify(updated));
+    const stored = localStorage.getItem("compareProduct");
+    const list: Product[] = stored ? JSON.parse(stored) : [];
 
-      // 🔔 Notify other components
-      window.dispatchEvent(new Event("storage"));
+    // check if already exists
+    if (list.some((p) => p.id === product.id)) {
+      console.log("⚠️ Product already in compare list:", product.title);
+      return;
+    }
 
-      return updated;
-    });
+    // enforce max 4
+    if (list.length >= 4) {
+      console.log("⚠️ Cannot add more than 4 products to compare list");
+      alert("You can only compare up to 4 products.");
+      return;
+    }
+
+    const updated = [...list, product];
+    localStorage.setItem("compareProduct", JSON.stringify(updated));
+    setCompareList(updated);
     setAdded(true);
+
+    console.log("✅ Added to compare list:", product.title, updated);
+
+    // 🔔 Notify other components
+    window.dispatchEvent(new Event("storage"));
   }
 
   function removeFromCompare() {
-    setCompareList((prev) => {
-      const updated = prev.filter((p) => p.id !== product.id);
-      localStorage.setItem("compareProduct", JSON.stringify(updated));
+    const stored = localStorage.getItem("compareProduct");
+    const list: Product[] = stored ? JSON.parse(stored) : [];
 
-      // 🔔 Notify other components
-      window.dispatchEvent(new Event("storage"));
-
-      return updated;
-    });
+    const updated = list.filter((p) => p.id !== product.id);
+    localStorage.setItem("compareProduct", JSON.stringify(updated));
+    setCompareList(updated);
     setAdded(false);
+
+    console.log("❌ Removed from compare list:", product.title, updated);
+
+    // 🔔 Notify other components
+    window.dispatchEvent(new Event("storage"));
   }
 
   useEffect(() => {
@@ -87,16 +111,28 @@ const CardComponent: React.FC<CardComponentProps> = ({ mode, product }) => {
         </div>
         <button
           onClick={added ? removeFromCompare : addToCompare}
-          className={`${
-            mode === "dark" ? "bg-[#757B81]" : "bg-[#F3F4F6]"
-          } w-full rounded-[5px] mb-2 h-[32px]`}
+          className={` ${
+            !added
+              ? `bg-[#FFD300] ${
+                  mode === "dark" ? "text-black" : "text-[#F3F4F6]"
+                } w-full rounded-[5px] mb-2 h-[32px]`
+              : `bg-[#757B81] ${
+                  mode === "dark" ? "text-black" : "text-black"
+                } w-full rounded-[5px] mb-2 h-[32px]`
+          }`}
         >
           {!added ? "Add To Compare" : "Remove From Compare"}
         </button>
         <button className="border-[2px] w-full rounded-[5px] h-[36px] text-[#FFD300] border-[#FFD300]">
           <a href={product.deeplinkUrl} target="_blank" rel="noreferrer">
-            Buy On Alibaba
+            Buy On AliExpress
           </a>
+        </button>
+        <button
+          className="border-[2px] w-full mt-2 rounded-[5px] h-[36px] text-[#FFD300] border-[#FFD300]"
+          onClick={handleSaveItem}
+        >
+          Save Item
         </button>
       </div>
     </div>

@@ -32,7 +32,7 @@ export interface Product {
     usd: number;
     fxTimestamp: string;
   };
-  productRating: number;
+  productRating?: number;
   sellerScore: number;
   deliveryEstimate: string;
   summaryBullets: string[];

@@ -152,7 +152,7 @@ export default function SavedItemCard({
         </div>
 
         {/* Actions */}
-        <div className="flex gap-3">
+        <div className="flex flex-col gap-3">
           <button
             className="flex-1 font-medium py-3 px-6 rounded-xl hover:opacity-80 transition-colors"
             style={{
@@ -162,6 +162,16 @@ export default function SavedItemCard({
             onClick={() => onPlaceOrder?.(id, title, price)}
           >
             {t("Buy on AliExpress")}
+          </button>
+          <button
+            className="flex-1 font-medium py-3 px-6 rounded-xl hover:opacity-80 transition-colors"
+            style={{
+              backgroundColor: "var(--color-accent-primary)",
+              color: "var(--color-text-button)",
+            }}
+            onClick={() => onPlaceOrder?.(id, title, price)}
+          >
+            {t("Update Price")}
           </button>
         </div>
 
