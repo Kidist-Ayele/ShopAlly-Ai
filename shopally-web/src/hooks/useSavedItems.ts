@@ -138,11 +138,13 @@ export const useSavedItems = (maxItems = 50) => {
               : "default-device";
 
           console.log("Using deviceId:", deviceId);
+          console.log(item.title, item.price.usd)
 
           const res: AlertCreateResponse = await createAlert({
             productId: item.id,
             deviceId,
-            currentPriceETB: item.price.etb,
+            productTitle: item.title,
+            currentPriceETB: item.price.usd,
           }).unwrap();
 
           const alertId = res.data?.data?.alertId;
