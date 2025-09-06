@@ -1,5 +1,5 @@
 // components/compare/ComparisonTable.tsx
-import { useDarkMode } from "@/app/components/ProfileComponents/DarkModeContext";
+// import { useDarkMode } from "@/app/components/ProfileComponents/DarkModeContext";
 import { useLanguage } from "@/hooks/useLanguage";
 import type { ComparisonItem } from "@/types/Compare/Comparison";
 import { FC } from "react";
@@ -10,7 +10,7 @@ interface ComparisonTableProps {
 }
 
 export const ComparisonTable: FC<ComparisonTableProps> = ({ comparison }) => {
-  const { isDarkMode } = useDarkMode();
+  // const { isDarkMode } = useDarkMode();
   const { t } = useLanguage();
 
   if (!comparison || comparison.length === 0) return null;

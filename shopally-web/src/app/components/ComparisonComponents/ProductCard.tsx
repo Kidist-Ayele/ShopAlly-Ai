@@ -1,17 +1,16 @@
 // //src/app/components/ComparePage/ProductCard.tsx
-import { useDarkMode } from "@/app/components/ProfileComponents/DarkModeContext";
+// import { useDarkMode } from "@/app/components/ProfileComponents/DarkModeContext";
 import { useLanguage } from "@/hooks/useLanguage";
 import { useSavedItems } from "@/hooks/useSavedItems";
-import { Product } from "@/types/Compare/Comparison";
-import { SavedItem } from "@/types/types";
+import { Product, SavedItem } from "@/types/types";
 import { FaHeart } from "react-icons/fa";
 import { FaCheck } from "react-icons/fa6";
 import { IoIosStar } from "react-icons/io";
 
 export const ProductCard: React.FC<{ product: Product }> = ({ product }) => {
-  const { isDarkMode } = useDarkMode();
+  // const { isDarkMode } = useDarkMode();
   const { t } = useLanguage();
-  const { savedItems, saveItem, removeItem, placeOrder } = useSavedItems();
+  const { savedItems, saveItem, removeItem } = useSavedItems();
 
   // Check if this product is already saved
   const isSaved = savedItems.some((item) => item.id === product.id);
@@ -28,8 +27,8 @@ export const ProductCard: React.FC<{ product: Product }> = ({ product }) => {
         imageUrl: product.imageUrl,
         aiMatchPercentage: product.aiMatchPercentage,
         price: product.price,
-        productRating: product.productRating,
-        sellerScore: product.numberSold, // adjust if you have a correct sellerScore field
+        productRating: product.productRating ?? 0,
+        sellerScore: product.numberSold ?? 0, // adjust if you have a correct sellerScore field
         deliveryEstimate: product.deliveryEstimate,
         summaryBullets: product.summaryBullets,
         deeplinkUrl: product.deeplinkUrl,

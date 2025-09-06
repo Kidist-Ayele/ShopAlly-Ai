@@ -1,3 +1,4 @@
+// src/app/components/NotificationCard.tsx
 "use client";
 
 import { useFirebaseMessaging } from "@/hooks/useFirebaseMessaging";
@@ -11,7 +12,6 @@ export default function Notifications() {
     if (notification) {
       setVisible(true);
 
-      // Auto-hide after 5 seconds
       const timer = setTimeout(() => setVisible(false), 5000);
       return () => clearTimeout(timer);
     }
@@ -19,21 +19,19 @@ export default function Notifications() {
 
   return (
     <>
-      {/* Debug token (optional) */}
       {token && (
         <div className="fixed bottom-2 right-2 text-xs text-gray-400">
           ✅ Token ready
         </div>
       )}
 
-      {/* Notification popup */}
       {notification && visible && (
         <div className="fixed top-4 right-4 z-50 bg-white dark:bg-gray-800 shadow-lg rounded-xl p-4 w-80 border border-gray-200 dark:border-gray-700 animate-slideIn">
           <h3 className="font-semibold text-gray-900 dark:text-gray-100">
-            {notification.title}
+            {notification.title ?? "Notification"}
           </h3>
           <p className="text-sm text-gray-600 dark:text-gray-300">
-            {notification.body}
+            {notification.body ?? ""}
           </p>
         </div>
       )}
