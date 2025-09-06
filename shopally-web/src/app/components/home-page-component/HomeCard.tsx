@@ -1,4 +1,5 @@
 // src/app/components/home-page-component/page.tsx
+"use client";
 import { useSavedItems } from "@/hooks/useSavedItems";
 import { Product } from "@/types/types";
 import { Star } from "lucide-react";
@@ -15,7 +16,20 @@ const CardComponent: React.FC<CardComponentProps> = ({ mode, product }) => {
   const [added, setAdded] = useState(false);
 
   const handleSaveItem = () => {
-    saveItem(product);
+    const savedItem = {
+      id: product.id,
+      title: product.title,
+      imageUrl: product.imageUrl,
+      aiMatchPercentage: product.aiMatchPercentage,
+      price: product.price,
+      productRating: product.productRating ?? 0, // ✅ fallback to 0 if undefined
+      sellerScore: product.sellerScore, // use sellerScore, not numberSold
+      deliveryEstimate: product.deliveryEstimate,
+      summaryBullets: product.summaryBullets,
+      deeplinkUrl: product.deeplinkUrl,
+    };
+
+    saveItem(savedItem);
     alert("Item saved!");
   };
 

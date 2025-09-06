@@ -1,5 +1,27 @@
 // src/types/Compare/Comparisons.ts
-import { Product } from "../types"; // ✅ reuse main Product
+export interface Product {
+  id: string;
+  title: string;
+  imageUrl: string;
+  aiMatchPercentage: number;
+  price: {
+    etb: number;
+    usd: number;
+    fxTimestamp: string;
+  };
+  productRating?: number;
+  sellerScore: number;
+  deliveryEstimate: string;
+  summaryBullets: string[];
+  deeplinkUrl: string;
+
+  // Fields you don’t send to backend
+  description?: string;
+  productSmallImageUrls?: string[];
+  numberSold?: number;
+  taxRate?: number;
+  discount?: number;
+} // ✅ reuse main Product
 
 export interface ComparisonResponse {
   data: {

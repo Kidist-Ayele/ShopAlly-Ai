@@ -1,7 +1,7 @@
 // components/compare/AIRecommendation.tsx
-import { useDarkMode } from "@/app/components/ProfileComponents/DarkModeContext";
+// import { useDarkMode } from "@/app/components/ProfileComponents/DarkModeContext";
 import { useLanguage } from "@/hooks/useLanguage";
-import { useSavedItems } from "@/hooks/useSavedItems";
+// import { useSavedItems } from "@/hooks/useSavedItems";
 import type { ComparisonItem } from "@/types/Compare/Comparison";
 import { Check, X } from "lucide-react";
 import { BsLightningChargeFill } from "react-icons/bs";
@@ -16,9 +16,9 @@ type AIRecommendationProps = {
 export const AIRecommendation: React.FC<AIRecommendationProps> = ({
   comparison,
 }) => {
-  const { isDarkMode } = useDarkMode();
+  // const { isDarkMode } = useDarkMode();
   const { t } = useLanguage();
-  const { placeOrder } = useSavedItems();
+  // const { placeOrder } = useSavedItems();
 
   if (!comparison || comparison.length === 0) return null;
 

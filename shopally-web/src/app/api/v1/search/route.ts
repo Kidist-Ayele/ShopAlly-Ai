@@ -44,9 +44,9 @@ export async function GET(
     console.log("🔎 Backend content-type:", contentType);
     console.log("🔎 Backend raw response:", rawText.slice(0, 300));
 
-    let data: any;
+    let data: ProductResponse;
     try {
-      data = JSON.parse(rawText);
+      data = JSON.parse(rawText) as ProductResponse;
     } catch (err) {
       console.error("❌ Failed to parse JSON:", err);
       return NextResponse.json(
@@ -57,7 +57,7 @@ export async function GET(
 
     if (!backendRes.ok) {
       return NextResponse.json(
-        { error: data?.status || "Failed to search products", data: null },
+        { error: data?.error || "Failed to search products", data: null },
         { status: backendRes.status }
       );
     }

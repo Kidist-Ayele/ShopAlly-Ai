@@ -1,16 +1,19 @@
 "use client";
 
-import { signIn, getProviders } from "next-auth/react";
-import { useRouter, useSearchParams } from "next/navigation";
-import { useEffect, useState } from "react";
+import { ClientSafeProvider, getProviders, signIn } from "next-auth/react";
 import Image from "next/image";
+import { useSearchParams } from "next/navigation";
+import { useEffect, useState } from "react";
 
 export default function CustomSignIn() {
-  const router = useRouter();
+  // const router = useRouter();
   const searchParams = useSearchParams();
   const callbackUrl = searchParams.get("callbackUrl") || "/home";
   const [isLoading, setIsLoading] = useState(false);
-  const [providers, setProviders] = useState<any>(null);
+  const [providers, setProviders] = useState<Record<
+    string,
+    ClientSafeProvider
+  > | null>(null);
 
   useEffect(() => {
     const fetchProviders = async () => {
@@ -132,7 +135,7 @@ export default function CustomSignIn() {
         {/* Features Preview */}
         <div className="mt-12 space-y-3">
           <h3 className="text-center text-gray-700 font-semibold mb-4">
-            What you'll get:
+            What you will get:
           </h3>
           <div className="space-y-2">
             <div className="flex items-center text-sm text-gray-600">
