@@ -18,9 +18,9 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "ShopAlly - Your Smart AI Assistant for Alibaba Shopping",
+  title: "ShopAlly - Your Smart AI Assistant for AliExpress Shopping",
   description:
-    "Discover the perfect products on Alibaba with AI-powered recommendations tailored to your needs.",
+    "Discover the perfect products on AliExpress with AI-powered recommendations tailored to your needs.",
 };
 
 export default function RootLayout({

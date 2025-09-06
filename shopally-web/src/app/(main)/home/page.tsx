@@ -12,13 +12,21 @@ import { Product } from "@/types/types";
 import { ArrowRight, Loader2, MessageCircleMore } from "lucide-react";
 import { useEffect, useState } from "react";
 
+interface ConversationMessage {
+  id: string;
+  type: "user" | "ai";
+  content: string;
+  products?: Product[];
+  timestamp: number;
+}
+
 export default function Home() {
   const { t } = useLanguage();
   const { isDarkMode } = useDarkMode();
 
-  const [messages, setMessages] = useState<string[]>([]);
+  const [conversation, setConversation] = useState<ConversationMessage[]>([]);
+  const [isClient, setIsClient] = useState(false);
   const [input, setInput] = useState("");
-  const [products, setProducts] = useState<Product[]>([]);
   const [compareList, setCompareList] = useState<Product[]>([]);
 
   const [searchProducts, { isLoading }] = useSearchProductsMutation();
@@ -28,33 +36,74 @@ export default function Home() {
   const handleSend = async () => {
     if (input.trim() === "") return;
 
-    setMessages((prev) => [...prev, input]);
+    const userMessage: ConversationMessage = {
+      id: `user-${Date.now()}`,
+      type: "user",
+      content: input,
+      timestamp: Date.now(),
+    };
+
+    // Add user message to conversation
+    setConversation((prev) => [...prev, userMessage]);
+
+    const userInput = input;
+    setInput("");
 
     try {
       const res = await searchProducts({
-        query: input,
+        query: userInput,
         priceMaxETB: null,
         minRating: null,
       }).unwrap();
 
-      setProducts(res?.data?.products || []);
+      const products = res?.data?.products || [];
+
+      const aiMessage: ConversationMessage = {
+        id: `ai-${Date.now()}`,
+        type: "ai",
+        content: `Found ${products.length} products for "${userInput}"`,
+        products: products,
+        timestamp: Date.now(),
+      };
+
+      // Add AI response to conversation
+      setConversation((prev) => [...prev, aiMessage]);
     } catch (err) {
       console.error("❌ Search failed:", err);
-      setProducts([]);
-    }
 
-    setInput("");
+      const errorMessage: ConversationMessage = {
+        id: `ai-error-${Date.now()}`,
+        type: "ai",
+        content: `Sorry, I couldn't find products for "${userInput}". Please try again.`,
+        products: [],
+        timestamp: Date.now(),
+      };
+
+      setConversation((prev) => [...prev, errorMessage]);
+    }
   };
 
-  // Local message persistence
+  // Set client flag and load conversation from localStorage
   useEffect(() => {
-    const stored = localStorage.getItem("messages");
-    setMessages(stored ? JSON.parse(stored) : []);
+    setIsClient(true);
+
+    // Load conversation from localStorage
+    const stored = localStorage.getItem("conversation");
+    if (stored) {
+      try {
+        const parsedConversation = JSON.parse(stored);
+        setConversation(parsedConversation);
+      } catch (err) {
+        console.error("Failed to parse stored conversation:", err);
+      }
+    }
   }, []);
 
   useEffect(() => {
-    localStorage.setItem("messages", JSON.stringify(messages));
-  }, [messages]);
+    if (isClient) {
+      localStorage.setItem("conversation", JSON.stringify(conversation));
+    }
+  }, [conversation, isClient]);
 
   // Listen for compare list changes
   useEffect(() => {
@@ -150,18 +199,18 @@ export default function Home() {
       <section className="max-w-3xl text-center mt-12 mb-4 px-4">
         <h1
           className={`text-2xl sm:text-3xl lg:text-4xl mb-4 font-bold leading-tight text-center ${
-            messages.length === 0 ? "block" : "hidden"
+            isClient && conversation.length === 0 ? "block" : "hidden"
           } ${isDarkMode ? "text-white" : "text-black"}`}
         >
-          {t("Your Smart AI Assistant for Alibaba Shopping")}
+          {t("Your Smart AI Assistant for AliExpress Shopping")}
         </h1>
         <p
           className={`mb-12 text-center leading-relaxed max-w-2xl mx-auto ${
-            messages.length === 0 ? "block" : "hidden"
+            isClient && conversation.length === 0 ? "block" : "hidden"
           } ${isDarkMode ? "text-[#FFF]" : "text-gray-400"}`}
         >
           {t(
-            "Discover the perfect products on Alibaba with AI-powered recommendations tailored to your needs."
+            "Discover the perfect products on AliExpress with AI-powered recommendations tailored to your needs."
           )}
         </p>
 
@@ -171,7 +220,9 @@ export default function Home() {
             isDarkMode
               ? "bg-[#262B32] text-[#999999]"
               : "bg-white text-[#999999]"
-          } ${messages.length === 0 ? "hidden sm:flex" : "hidden"}`}
+          } ${
+            isClient && conversation.length === 0 ? "hidden sm:flex" : "hidden"
+          }`}
         >
           <input
             type="text"
@@ -198,7 +249,7 @@ export default function Home() {
       </section>
 
       {/* Suggestions or Results */}
-      {messages.length === 0 ? (
+      {isClient && conversation.length === 0 ? (
         <section className="mt-10 px-4 max-w-3xl w-full">
           <h2
             className={`text-lg font-semibold mb-4 text-center ${
@@ -218,7 +269,51 @@ export default function Home() {
                 key={i}
                 onClick={() => {
                   setInput(q);
-                  handleSend();
+                  // We'll trigger handleSend after setting input
+                  setTimeout(() => {
+                    const userMessage: ConversationMessage = {
+                      id: `user-${Date.now()}`,
+                      type: "user",
+                      content: q,
+                      timestamp: Date.now(),
+                    };
+
+                    setConversation((prev) => [...prev, userMessage]);
+
+                    // Simulate the search
+                    searchProducts({
+                      query: q,
+                      priceMaxETB: null,
+                      minRating: null,
+                    })
+                      .unwrap()
+                      .then((res) => {
+                        const products = res?.data?.products || [];
+
+                        const aiMessage: ConversationMessage = {
+                          id: `ai-${Date.now()}`,
+                          type: "ai",
+                          content: `Found ${products.length} products for "${q}"`,
+                          products: products,
+                          timestamp: Date.now(),
+                        };
+
+                        setConversation((prev) => [...prev, aiMessage]);
+                      })
+                      .catch((err) => {
+                        console.error("❌ Search failed:", err);
+
+                        const errorMessage: ConversationMessage = {
+                          id: `ai-error-${Date.now()}`,
+                          type: "ai",
+                          content: `Sorry, I couldn't find products for "${q}". Please try again.`,
+                          products: [],
+                          timestamp: Date.now(),
+                        };
+
+                        setConversation((prev) => [...prev, errorMessage]);
+                      });
+                  }, 0);
                 }}
                 className={`flex items-center gap-2 border rounded-lg px-3 py-2 text-sm transition hover:bg-gray-50 ${
                   isDarkMode
@@ -234,34 +329,57 @@ export default function Home() {
         </section>
       ) : (
         <div className="w-full max-w-3xl px-4 flex flex-col gap-4 mt-6">
-          {/* Messages */}
-          {messages.map((msg, idx) => (
-            <div key={idx} className="flex justify-end">
-              <div className="max-w-1/2 break-words px-4 py-2 rounded-xl bg-yellow-400 text-black">
-                {msg}
-              </div>
+          {/* Conversation Messages */}
+          {conversation.map((message) => (
+            <div key={message.id} className="flex flex-col gap-2">
+              {/* User Message */}
+              {message.type === "user" && (
+                <div className="flex justify-end">
+                  <div className="max-w-3/4 break-words px-4 py-2 rounded-xl bg-yellow-400 text-black">
+                    {message.content}
+                  </div>
+                </div>
+              )}
+
+              {/* AI Response */}
+              {message.type === "ai" && (
+                <div className="flex flex-col gap-3">
+                  <div className="flex justify-start">
+                    <div
+                      className={`max-w-3/4 break-words px-4 py-2 rounded-xl ${
+                        isDarkMode
+                          ? "bg-gray-700 text-white"
+                          : "bg-gray-100 text-gray-800"
+                      }`}
+                    >
+                      {message.content}
+                    </div>
+                  </div>
+
+                  {/* Product Results */}
+                  {message.products && message.products.length > 0 && (
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mt-2">
+                      {message.products.map((product, i) => (
+                        <CardComponent
+                          key={`${message.id}-product-${i}`}
+                          mode={isDarkMode ? "dark" : "light"}
+                          product={product}
+                        />
+                      ))}
+                    </div>
+                  )}
+                </div>
+              )}
             </div>
           ))}
-
-          {/* Product Results */}
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mt-6">
-            {products.map((p, i) => (
-              <CardComponent
-                key={i}
-                mode={isDarkMode ? "dark" : "light"}
-                product={p}
-              />
-            ))}
-          </div>
         </div>
       )}
 
       {/* Mobile Search Box */}
       <section
-        className={`fixed bottom-2 sm:bottom-4 left-0 right-0 px-3 sm:px-4 ${
-          messages.length === 0 ? "block sm:hidden" : "block"
+        className={`fixed bottom-2 sm:bottom-4 left-16 lg:left-64 right-4 px-3 sm:px-4 ${
+          isClient && conversation.length === 0 ? "block sm:hidden" : "block"
         } ${isDarkMode ? "bg-[#090C11]" : "bg-[#FFFFFF]"}`}
-        style={{ marginLeft: "4rem", marginRight: "1rem" }}
       >
         <div
           className={`flex items-center border border-gray-300 dark:border-gray-600 rounded-xl overflow-hidden shadow-sm w-full ${
