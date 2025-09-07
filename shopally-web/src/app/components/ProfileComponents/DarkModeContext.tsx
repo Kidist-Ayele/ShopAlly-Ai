@@ -11,6 +11,7 @@ import {
 interface DarkModeContextType {
   isDarkMode: boolean;
   toggleDarkMode: () => void;
+  resetToLightMode: () => void;
 }
 
 const DarkModeContext = createContext<DarkModeContextType | undefined>(
@@ -20,19 +21,23 @@ const DarkModeContext = createContext<DarkModeContextType | undefined>(
 export function DarkModeProvider({ children }: { children: ReactNode }) {
   const [isDarkMode, setIsDarkMode] = useState(false);
 
-  // Initialize theme from localStorage and system preference
+  // Initialize theme from localStorage, default to light mode for new users
   useEffect(() => {
     const savedTheme = localStorage.getItem("theme");
-    const systemPrefersDark = window.matchMedia(
-      "(prefers-color-scheme: dark)"
-    ).matches;
 
-    if (savedTheme === "dark" || (!savedTheme && systemPrefersDark)) {
+    // Only apply dark mode if explicitly saved as "dark"
+    // Default to light mode for new users (no saved theme)
+    if (savedTheme === "dark") {
       setIsDarkMode(true);
       document.documentElement.classList.add("dark");
     } else {
       setIsDarkMode(false);
       document.documentElement.classList.remove("dark");
+
+      // If no theme is saved, set light mode as default for new users
+      if (!savedTheme) {
+        localStorage.setItem("theme", "light");
+      }
     }
   }, []);
 
@@ -49,8 +54,16 @@ export function DarkModeProvider({ children }: { children: ReactNode }) {
     }
   };
 
+  const resetToLightMode = () => {
+    setIsDarkMode(false);
+    document.documentElement.classList.remove("dark");
+    localStorage.setItem("theme", "light");
+  };
+
   return (
-    <DarkModeContext.Provider value={{ isDarkMode, toggleDarkMode }}>
+    <DarkModeContext.Provider
+      value={{ isDarkMode, toggleDarkMode, resetToLightMode }}
+    >
       {children}
     </DarkModeContext.Provider>
   );

@@ -233,15 +233,42 @@ export default function Sidebar({ activePage = "profile" }: SidebarProps) {
                 {isDarkMode ? t("Light Mode") : t("Dark Mode")}
               </span>
             </button>
-            <button
-              onClick={() => signOut({ callbackUrl: "/api/auth/signin" })}
-              className="flex items-center justify-center lg:justify-start gap-2 lg:gap-3 px-2 py-2 lg:px-3 lg:py-2 rounded-md w-full transition-colors hover:opacity-80"
-            >
-              Logout
-            </button>
           </li>
         </ul>
       </nav>
+
+      {/* Logout Button - Fixed at bottom */}
+      <div
+        className="p-2 lg:p-4 border-t transition-colors"
+        style={{
+          borderColor: "var(--color-border-primary)",
+        }}
+      >
+        <button
+          onClick={() => signOut({ callbackUrl: "/signin" })}
+          className="flex items-center justify-center lg:justify-start gap-2 lg:gap-3 px-2 py-2 lg:px-3 lg:py-2 rounded-md w-full transition-colors hover:opacity-80"
+          style={{
+            color: "var(--color-text-secondary)",
+          }}
+        >
+          {/* Logout Icon */}
+          <svg
+            className="w-4 h-4 lg:w-5 lg:h-5"
+            fill="none"
+            stroke="currentColor"
+            viewBox="0 0 24 24"
+            xmlns="http://www.w3.org/2000/svg"
+          >
+            <path
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              strokeWidth={2}
+              d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1"
+            />
+          </svg>
+          <span className="hidden lg:block">{t("Logout")}</span>
+        </button>
+      </div>
     </div>
   );
 }

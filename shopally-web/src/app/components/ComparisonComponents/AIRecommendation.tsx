@@ -1,7 +1,7 @@
 // components/compare/AIRecommendation.tsx
 // import { useDarkMode } from "@/app/components/ProfileComponents/DarkModeContext";
 import { useLanguage } from "@/hooks/useLanguage";
-// import { useSavedItems } from "@/hooks/useSavedItems";
+import { useSavedItems } from "@/hooks/useSavedItems";
 import type { ComparisonItem } from "@/types/Compare/Comparison";
 import { Check, X } from "lucide-react";
 import { BsLightningChargeFill } from "react-icons/bs";
@@ -19,7 +19,7 @@ export const AIRecommendation: React.FC<AIRecommendationProps> = ({
 }) => {
   // const { isDarkMode } = useDarkMode();
   const { t } = useLanguage();
-  // const { placeOrder } = useSavedItems();
+  const { placeOrder } = useSavedItems();
 
   if (!comparison || comparison.length === 0) return null;
 
@@ -140,9 +140,20 @@ export const AIRecommendation: React.FC<AIRecommendationProps> = ({
               backgroundColor: "var(--color-accent-primary)",
               color: "var(--color-text-button)",
             }}
-            onClick={() =>
-              window.open(recommendedProduct.deeplinkUrl, "_blank")
-            }
+            onClick={() => {
+              // Track the order when user clicks "Buy from AliExpress"
+              placeOrder(
+                recommendedProduct.id,
+                recommendedProduct.title,
+                recommendedProduct.price
+              );
+              // Open AliExpress link in new tab
+              window.open(
+                recommendedProduct.deeplinkUrl,
+                "_blank",
+                "noopener,noreferrer"
+              );
+            }}
           >
             {t("Buy from AliExpress")}
           </button>

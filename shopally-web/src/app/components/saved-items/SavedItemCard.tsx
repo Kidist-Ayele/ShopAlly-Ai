@@ -34,6 +34,7 @@ export default function SavedItemCard({
   priceAlertOn,
   placeholderText,
   id,
+  deeplinkUrl,
   onRemove,
   onUpdatePrice,
   onToggleAlert,
@@ -215,11 +216,14 @@ export default function SavedItemCard({
                 backgroundColor: "var(--color-accent-primary)",
                 color: "var(--color-text-button)",
               }}
-              onClick={() => onPlaceOrder?.(id, title, price)}
+              onClick={() => {
+                // Track the order when user clicks "Buy from AliExpress"
+                onPlaceOrder?.(id, title, price);
+                // Open AliExpress link in new tab
+                window.open(deeplinkUrl, "_blank", "noopener,noreferrer");
+              }}
             >
-              <a href="#" target="_blank" rel="noreferrer">
-                {t("Buy from AliExpress")}
-              </a>
+              {t("Buy from AliExpress")}
             </button>
 
             <button

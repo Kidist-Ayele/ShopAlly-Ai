@@ -24,6 +24,6 @@ export const config = {
     "/comparison", 
     "/saved-items",
     "/profile",
-    "/how-it-works",
+    "/how-it-works"
   ],
 };
