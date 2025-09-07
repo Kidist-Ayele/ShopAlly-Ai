@@ -1,13 +1,14 @@
 // components/compare/AIRecommendation.tsx
 // import { useDarkMode } from "@/app/components/ProfileComponents/DarkModeContext";
 import { useLanguage } from "@/hooks/useLanguage";
-// import { useSavedItems } from "@/hooks/useSavedItems";
+import { useSavedItems } from "@/hooks/useSavedItems";
 import type { ComparisonItem } from "@/types/Compare/Comparison";
 import { Check, X } from "lucide-react";
 import { BsLightningChargeFill } from "react-icons/bs";
 import { FaCircleCheck } from "react-icons/fa6";
 import { IoIosStar } from "react-icons/io";
 import { TiDelete } from "react-icons/ti";
+import { formatPriceForEthiopia } from "@/utils/priceUtils";
 
 type AIRecommendationProps = {
   comparison: ComparisonItem[];
@@ -18,7 +19,7 @@ export const AIRecommendation: React.FC<AIRecommendationProps> = ({
 }) => {
   // const { isDarkMode } = useDarkMode();
   const { t } = useLanguage();
-  // const { placeOrder } = useSavedItems();
+  const { placeOrder } = useSavedItems();
 
   if (!comparison || comparison.length === 0) return null;
 
@@ -108,7 +109,7 @@ export const AIRecommendation: React.FC<AIRecommendationProps> = ({
                 className="text-sm font-medium transition-colors"
                 style={{ color: "var(--color-accent-primary)" }}
               >
-                ${recommendedProduct.price.usd}
+                {formatPriceForEthiopia(recommendedProduct.price)}
               </span>
               <div className="flex items-center gap-1">
                 <span
@@ -137,11 +138,22 @@ export const AIRecommendation: React.FC<AIRecommendationProps> = ({
             className="px-4 py-2 rounded-lg font-medium hover:opacity-80 transition-colors"
             style={{
               backgroundColor: "var(--color-accent-primary)",
-              color: "var(--color-text-primary)",
+              color: "var(--color-text-button)",
             }}
-            onClick={() =>
-              window.open(recommendedProduct.deeplinkUrl, "_blank")
-            }
+            onClick={() => {
+              // Track the order when user clicks "Buy from AliExpress"
+              placeOrder(
+                recommendedProduct.id,
+                recommendedProduct.title,
+                recommendedProduct.price
+              );
+              // Open AliExpress link in new tab
+              window.open(
+                recommendedProduct.deeplinkUrl,
+                "_blank",
+                "noopener,noreferrer"
+              );
+            }}
           >
             {t("Buy from AliExpress")}
           </button>
@@ -240,13 +252,7 @@ export const AIRecommendation: React.FC<AIRecommendationProps> = ({
                 <div
                   className="h-2 rounded-full transition-colors"
                   style={{
-                    backgroundColor:
-                      analysis.product.id &&
-                      comparison.find(
-                        (c) => c.product.id === analysis.product.id
-                      )?.synthesis.isBestValue
-                        ? "var(--color-accent-primary)" // yellow
-                        : "var(--color-text-tertiary)", // gray
+                    backgroundColor: "var(--color-accent-primary)", // Always use accent color for progress
                     width: `${analysis.score}%`,
                   }}
                 />

@@ -11,5 +11,5 @@
     "rootDir": ".", // important to avoid nested dirs
     "noEmit": false // ensure this overrides base tsconfig
   },
-  "include": ["mock-alerts-server.ts"]
+  "include": []
 }

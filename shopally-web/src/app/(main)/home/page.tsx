@@ -31,10 +31,25 @@ export default function Home() {
   const [isClient, setIsClient] = useState(false);
   const [input, setInput] = useState("");
   const [compareList, setCompareList] = useState<Product[]>([]);
+  const [expandedMessages, setExpandedMessages] = useState<Set<string>>(
+    new Set()
+  );
 
   const [searchProducts, { isLoading }] = useSearchProductsMutation();
   const [compareProducts, { isLoading: isComparing }] =
     useCompareProductsMutation();
+
+  const toggleExpanded = (messageId: string) => {
+    setExpandedMessages((prev) => {
+      const newSet = new Set(prev);
+      if (newSet.has(messageId)) {
+        newSet.delete(messageId);
+      } else {
+        newSet.add(messageId);
+      }
+      return newSet;
+    });
+  };
 
   const handleSend = async () => {
     if (input.trim() === "") return;
@@ -96,6 +111,14 @@ export default function Home() {
       try {
         const parsedConversation = JSON.parse(stored);
         setConversation(parsedConversation);
+
+        // Auto-scroll to bottom after loading conversation
+        setTimeout(() => {
+          window.scrollTo({
+            top: document.body.scrollHeight,
+            behavior: "smooth",
+          });
+        }, 100);
       } catch (err) {
         console.error("Failed to parse stored conversation:", err);
       }
@@ -105,8 +128,24 @@ export default function Home() {
   useEffect(() => {
     if (isClient) {
       localStorage.setItem("conversation", JSON.stringify(conversation));
+
+      // Auto-scroll to bottom when new messages are added
+      if (conversation.length > 0) {
+        setTimeout(() => {
+          window.scrollTo({
+            top: document.body.scrollHeight,
+            behavior: "smooth",
+          });
+        }, 100);
+      }
     }
   }, [conversation, isClient]);
+
+  // Initialize compare list
+  useEffect(() => {
+    const list = localStorage.getItem("compareProduct");
+    setCompareList(list ? JSON.parse(list) : []);
+  }, []);
 
   // Listen for compare list changes
   useEffect(() => {
@@ -115,16 +154,10 @@ export default function Home() {
       setCompareList(list ? JSON.parse(list) : []);
     };
 
-    updateCompare();
     window.addEventListener("storage", updateCompare);
 
     return () => window.removeEventListener("storage", updateCompare);
   }, []);
-
-  // Log whenever compareList changes
-  useEffect(() => {
-    console.log("Updated compare list:", compareList);
-  }, [compareList]);
 
   const handleCompare = async () => {
     if (compareList.length < 2 || compareList.length > 4) {
@@ -342,14 +375,14 @@ export default function Home() {
           </div>
         </section>
       ) : (
-        <div className="w-full max-w-3xl px-4 flex flex-col gap-4 mt-6">
+        <div className="w-full flex flex-col gap-4 mt-6 pb-24 sm:pb-8">
           {/* Conversation Messages */}
           {conversation.map((message) => (
             <div key={message.id} className="flex flex-col gap-2">
               {/* User Message */}
               {message.type === "user" && (
-                <div className="flex justify-end">
-                  <div className="max-w-3/4 break-words px-4 py-2 rounded-xl bg-yellow-400 text-black">
+                <div className="flex justify-end w-full">
+                  <div className="max-w-xs sm:max-w-md break-words px-4 py-2 rounded-xl bg-yellow-400 text-black mr-2">
                     {message.content}
                   </div>
                 </div>
@@ -357,10 +390,10 @@ export default function Home() {
 
               {/* AI Response */}
               {message.type === "ai" && (
-                <div className="flex flex-col gap-3">
-                  <div className="flex justify-start">
+                <div className="flex flex-col gap-3 w-full">
+                  <div className="flex justify-start w-full">
                     <div
-                      className={`max-w-3/4 break-words px-4 py-2 rounded-xl ${
+                      className={`max-w-xs sm:max-w-md break-words px-4 py-2 rounded-xl ml-2 ${
                         isDarkMode
                           ? "bg-gray-700 text-white"
                           : "bg-gray-100 text-gray-800"
@@ -372,14 +405,40 @@ export default function Home() {
 
                   {/* Product Results */}
                   {message.products && message.products.length > 0 && (
-                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mt-2">
-                      {message.products.map((product, i) => (
-                        <CardComponent
-                          key={`${message.id}-product-${i}`}
-                          mode={isDarkMode ? "dark" : "light"}
-                          product={product}
-                        />
-                      ))}
+                    <div className="mt-2">
+                      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4 sm:gap-5 lg:gap-6">
+                        {(expandedMessages.has(message.id)
+                          ? message.products
+                          : message.products.slice(0, 4)
+                        ).map((product, i) => (
+                          <CardComponent
+                            key={`${message.id}-product-${i}`}
+                            product={product}
+                          />
+                        ))}
+                      </div>
+
+                      {/* See More Button */}
+                      {message.products.length > 4 && (
+                        <div className="flex justify-center mt-4">
+                          <button
+                            onClick={() => toggleExpanded(message.id)}
+                            className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors ${
+                              isDarkMode
+                                ? "bg-gray-700 text-white hover:bg-gray-600"
+                                : "bg-gray-100 text-gray-800 hover:bg-gray-200"
+                            }`}
+                          >
+                            {expandedMessages.has(message.id)
+                              ? `Show Less (${
+                                  message.products.length - 4
+                                } hidden)`
+                              : `See More (${
+                                  message.products.length - 4
+                                } more products)`}
+                          </button>
+                        </div>
+                      )}
                     </div>
                   )}
                 </div>
@@ -391,38 +450,46 @@ export default function Home() {
 
       {/* Mobile Search Box */}
       <section
-        className={`fixed bottom-2 sm:bottom-4 left-16 lg:left-64 right-4 px-3 sm:px-4 ${
+        className={`fixed bottom-0 left-16 lg:left-64 right-0 z-50 ${
           isClient && conversation.length === 0 ? "block sm:hidden" : "block"
-        } ${isDarkMode ? "bg-[#090C11]" : "bg-[#FFFFFF]"}`}
+        }`}
       >
+        {/* Full backdrop to prevent any content from showing through */}
         <div
-          className={`flex items-center border border-gray-300 dark:border-gray-600 rounded-xl overflow-hidden shadow-sm w-full ${
-            isDarkMode
-              ? "bg-[#262B32] text-[#999999]"
-              : "bg-white text-[#999999]"
+          className={`absolute inset-0 backdrop-blur-sm ${
+            isDarkMode ? "bg-[#090C11]/95" : "bg-[#FFFFFF]/95"
           }`}
-        >
-          <input
-            type="text"
-            placeholder={t("Ask me anything about products you need...")}
-            value={input}
-            onChange={(e) => setInput(e.target.value)}
-            onKeyDown={(e) => e.key === "Enter" && handleSend()}
-            className={`flex-1 px-3 sm:px-4 py-2.5 sm:py-3 text-sm sm:text-base focus:outline-none min-w-0 ${
-              isDarkMode ? "bg-gray-800 text-white" : "text-black"
+        ></div>
+        <div className="relative px-4 sm:px-8 py-2 sm:py-4 flex justify-center">
+          <div
+            className={`relative flex items-center border border-gray-300 dark:border-gray-600 rounded-xl overflow-hidden shadow-sm w-full max-w-4xl ${
+              isDarkMode
+                ? "bg-[#262B32] text-[#999999]"
+                : "bg-white text-[#999999]"
             }`}
-          />
-          <button
-            onClick={handleSend}
-            disabled={isLoading}
-            className="bg-yellow-400 rounded-xl p-2.5 sm:p-3 mr-1 my-1 flex items-center justify-center flex-shrink-0"
           >
-            {isLoading ? (
-              <Loader2 size={18} className="animate-spin text-black" />
-            ) : (
-              <ArrowRight size={18} className="sm:w-5 sm:h-5 text-black" />
-            )}
-          </button>
+            <input
+              type="text"
+              placeholder={t("Ask me anything about products you need...")}
+              value={input}
+              onChange={(e) => setInput(e.target.value)}
+              onKeyDown={(e) => e.key === "Enter" && handleSend()}
+              className={`flex-1 px-3 sm:px-4 py-2.5 sm:py-3 text-sm sm:text-base focus:outline-none min-w-0 ${
+                isDarkMode ? "bg-gray-800 text-white" : "text-black"
+              }`}
+            />
+            <button
+              onClick={handleSend}
+              disabled={isLoading}
+              className="bg-yellow-400 rounded-xl p-2.5 sm:p-3 mr-1 my-1 flex items-center justify-center flex-shrink-0"
+            >
+              {isLoading ? (
+                <Loader2 size={18} className="animate-spin text-black" />
+              ) : (
+                <ArrowRight size={18} className="sm:w-5 sm:h-5 text-black" />
+              )}
+            </button>
+          </div>
         </div>
       </section>
     </main>

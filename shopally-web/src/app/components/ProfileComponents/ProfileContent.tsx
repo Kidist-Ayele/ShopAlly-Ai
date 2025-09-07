@@ -44,9 +44,35 @@ export default function ProfileContent() {
         fullName: session.user.name || "",
         email: session.user.email || "",
       };
-      setUserData(userInfo);
-      setOriginalUserData(userInfo);
-      setProfileImage(session.user.image || null);
+
+      // Check localStorage first for custom user data, fallback to session data
+      const savedUserData = localStorage.getItem(
+        `userData_${session.user.email}`
+      );
+      if (savedUserData) {
+        try {
+          const parsedData = JSON.parse(savedUserData);
+          setUserData(parsedData);
+          setOriginalUserData(parsedData);
+        } catch (error) {
+          // If parsing fails, use session data
+          setUserData(userInfo);
+          setOriginalUserData(userInfo);
+        }
+      } else {
+        setUserData(userInfo);
+        setOriginalUserData(userInfo);
+      }
+
+      // Check localStorage first for custom uploaded image, fallback to session image
+      const savedProfileImage = localStorage.getItem(
+        `profileImage_${session.user.email}`
+      );
+      if (savedProfileImage) {
+        setProfileImage(savedProfileImage);
+      } else {
+        setProfileImage(session.user.image || null);
+      }
     }
   }, [session]);
 
@@ -121,7 +147,17 @@ export default function ProfileContent() {
         await new Promise((resolve) => setTimeout(resolve, 2000));
         const reader = new FileReader();
         reader.onload = (e) => {
-          setProfileImage(e.target?.result as string);
+          const imageDataUrl = e.target?.result as string;
+          setProfileImage(imageDataUrl);
+
+          // Save to localStorage with user email as key
+          if (session?.user?.email) {
+            localStorage.setItem(
+              `profileImage_${session.user.email}`,
+              imageDataUrl
+            );
+          }
+
           setShowMessage({
             type: "success",
             message: t("Profile image uploaded successfully!"),
@@ -142,6 +178,20 @@ export default function ProfileContent() {
 
   const handleEditPhoto = () => {
     fileInputRef.current?.click();
+  };
+
+  const handleRemovePhoto = () => {
+    if (session?.user?.email) {
+      // Remove from localStorage
+      localStorage.removeItem(`profileImage_${session.user.email}`);
+      // Revert to email account image
+      setProfileImage(session.user.image || null);
+      setShowMessage({
+        type: "success",
+        message: t("Profile image removed successfully!"),
+      });
+      setTimeout(() => setShowMessage({ type: null, message: "" }), 3000);
+    }
   };
 
   const handleEditToggle = () => {
@@ -169,6 +219,14 @@ export default function ProfileContent() {
       // Simulate API call
       await new Promise((resolve) => setTimeout(resolve, 2000));
 
+      // Save to localStorage
+      if (session?.user?.email) {
+        localStorage.setItem(
+          `userData_${session.user.email}`,
+          JSON.stringify(userData)
+        );
+      }
+
       // Update original data to match current data
       setOriginalUserData(userData);
 
@@ -194,6 +252,30 @@ export default function ProfileContent() {
     setUserData(originalUserData);
     setIsEditing(false);
     setShowMessage({ type: null, message: "" });
+  };
+
+  const handleResetToSessionData = () => {
+    if (session?.user) {
+      const sessionData = {
+        fullName: session.user.name || "",
+        email: session.user.email || "",
+      };
+
+      // Remove from localStorage
+      localStorage.removeItem(`userData_${session.user.email}`);
+      localStorage.removeItem(`profileImage_${session.user.email}`);
+
+      // Reset to session data
+      setUserData(sessionData);
+      setOriginalUserData(sessionData);
+      setProfileImage(session.user.image || null);
+
+      setShowMessage({
+        type: "success",
+        message: t("Profile reset to original data!"),
+      });
+      setTimeout(() => setShowMessage({ type: null, message: "" }), 3000);
+    }
   };
 
   const handleInputChange = (field: string, value: string) => {

@@ -6,6 +6,9 @@ import ToggleSwitch from "@/app/components/saved-items/ToggleSwitch";
 import { useLanguage } from "@/hooks/useLanguage";
 import { Trash2 } from "lucide-react";
 import { SavedItemUI } from "../../../types/types";
+import { useState } from "react";
+import { formatPriceForEthiopia } from "@/utils/priceUtils";
+import { FaHeart } from "react-icons/fa";
 
 // Extend SavedItemUI with optional callbacks
 interface SavedItemCardProps extends SavedItemUI {
@@ -31,6 +34,7 @@ export default function SavedItemCard({
   priceAlertOn,
   placeholderText,
   id,
+  deeplinkUrl,
   onRemove,
   onUpdatePrice,
   onToggleAlert,
@@ -38,6 +42,19 @@ export default function SavedItemCard({
 }: SavedItemCardProps) {
   const { isDarkMode } = useDarkMode();
   const { t } = useLanguage();
+
+  // Image loading states
+  const [imageLoaded, setImageLoaded] = useState(false);
+  const [imageError, setImageError] = useState(false);
+  const [retryCount, setRetryCount] = useState(0);
+
+  // Function to get image URL with retry logic
+  const getImageUrl = () => {
+    if (retryCount > 0) {
+      return `https://images.weserv.nl/?url=${encodeURIComponent(imageUrl)}`;
+    }
+    return imageUrl;
+  };
 
   return (
     <div
@@ -54,10 +71,41 @@ export default function SavedItemCard({
     >
       {/* Image container */}
       <div className="aspect-square rounded-xl overflow-hidden transition-colors bg-gray-200 relative">
+        {/* Loading skeleton */}
+        {!imageLoaded && !imageError && (
+          <div className="w-full h-full bg-gray-300 dark:bg-gray-600 animate-pulse flex items-center justify-center">
+            <div className="text-gray-500 dark:text-gray-400 text-sm">
+              Loading...
+            </div>
+          </div>
+        )}
+
+        {/* Fallback UI */}
+        {imageError && (
+          <div className="w-full h-full bg-gray-300 dark:bg-gray-600 flex flex-col items-center justify-center text-gray-500 dark:text-gray-400">
+            <div className="text-4xl mb-2">📷</div>
+            <div className="text-sm text-center px-4">Image not available</div>
+          </div>
+        )}
+
+        {/* Actual image */}
         <img
-          src={imageUrl}
+          src={getImageUrl()}
           alt={title}
-          className="w-full h-full object-cover"
+          className={`w-full h-full object-cover transition-opacity duration-300 ${
+            imageError ? "opacity-0" : "opacity-100"
+          }`}
+          loading="lazy"
+          referrerPolicy="no-referrer"
+          crossOrigin="anonymous"
+          onLoad={() => setImageLoaded(true)}
+          onError={() => {
+            if (retryCount === 0) {
+              setRetryCount(1);
+            } else {
+              setImageError(true);
+            }
+          }}
         />
 
         {/* Price Alert badge */}
@@ -91,11 +139,7 @@ export default function SavedItemCard({
             className="text-2xl font-bold transition-colors"
             style={{ color: "var(--color-accent-primary)" }}
           >
-            {price.etb
-              ? `${Number(price.etb).toFixed(2)} ETB`
-              : price.usd
-              ? `$${Number(price.usd).toFixed(2)}`
-              : "N/A"}
+            {formatPriceForEthiopia(price)}
           </span>
           <div
             className="flex items-center gap-1 text-sm transition-colors"
@@ -152,27 +196,52 @@ export default function SavedItemCard({
         </div>
 
         {/* Actions */}
-        <div className="flex flex-col gap-3">
+        <div className="space-y-3">
           <button
-            className="flex-1 font-medium py-3 px-6 rounded-xl hover:opacity-80 transition-colors"
+            className="w-full font-medium py-3 px-6 rounded-xl hover:opacity-80 transition-colors border"
             style={{
-              backgroundColor: "var(--color-accent-primary)",
-              color: "var(--color-text-button)",
+              backgroundColor: "var(--color-bg-tertiary)",
+              color: "var(--color-text-primary)",
+              borderColor: "var(--color-border-primary)",
             }}
             onClick={() => onPlaceOrder?.(id, title, price)}
           >
-            {t("Buy on AliExpress")}
+            {t("Add To Compare")}
           </button>
-          <button
-            className="flex-1 font-medium py-3 px-6 rounded-xl hover:opacity-80 transition-colors"
-            style={{
-              backgroundColor: "var(--color-accent-primary)",
-              color: "var(--color-text-button)",
-            }}
-            onClick={() => onPlaceOrder?.(id, title, price)}
-          >
-            {t("Update Price")}
-          </button>
+
+          <div className="flex gap-3">
+            <button
+              className="flex-1 font-medium py-3 px-6 rounded-xl hover:opacity-80 transition-colors"
+              style={{
+                backgroundColor: "var(--color-accent-primary)",
+                color: "var(--color-text-button)",
+              }}
+              onClick={() => {
+                // Track the order when user clicks "Buy from AliExpress"
+                onPlaceOrder?.(id, title, price);
+                // Open AliExpress link in new tab
+                window.open(deeplinkUrl, "_blank", "noopener,noreferrer");
+              }}
+            >
+              {t("Buy from AliExpress")}
+            </button>
+
+            <button
+              className="p-3 rounded-xl hover:opacity-80 transition-colors"
+              style={{
+                backgroundColor: "var(--color-bg-tertiary)",
+                color: "var(--color-text-primary)",
+              }}
+              onClick={() => onRemove?.(id)}
+            >
+              <FaHeart
+                className="w-5 h-5 transition-colors"
+                style={{
+                  color: "var(--color-accent-primary)",
+                }}
+              />
+            </button>
+          </div>
         </div>
 
         {/* Additional Info */}
