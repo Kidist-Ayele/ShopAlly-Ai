@@ -1,10 +1,8 @@
-// src/app/(main)/comparison/page.tsx
 "use client";
 
 import { AIRecommendation } from "@/app/components/ComparisonComponents/AIRecommendation";
 import { ComparisonTable } from "@/app/components/ComparisonComponents/ComparisonTable";
 import { ProductCard } from "@/app/components/ComparisonComponents/ProductCard";
-// import { useDarkMode } from "@/app/components/ProfileComponents/DarkModeContext";
 import { useLanguage } from "@/hooks/useLanguage";
 import type { ComparisonItem } from "@/types/Compare/Comparison";
 import { useEffect, useState } from "react";
@@ -12,7 +10,6 @@ import { useEffect, useState } from "react";
 export default function ComparePage() {
   const [comparison, setComparison] = useState<ComparisonItem[]>([]);
   const [loading, setLoading] = useState(true);
-  // const { isDarkMode } = useDarkMode();
   const { t } = useLanguage();
 
   // Load comparison from localStorage
