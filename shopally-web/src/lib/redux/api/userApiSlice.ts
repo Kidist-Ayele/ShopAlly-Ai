@@ -1,9 +1,9 @@
 //src/lib/redux/api/userApiSlice.ts
-import { ComparisonResponse, Product } from "@/types/Compare/Comparison";
+import { ComparisonResponse } from "@/types/Compare/Comparison";
 import { AlertCreateResponse } from "@/types/SavedItems/AlertCreateResponse";
 import { AlertDeleteResponse } from "@/types/SavedItems/AlertDeleteResponse";
 import { CreateAlert } from "@/types/SavedItems/SavedItems";
-import { ProductResponse } from "@/types/types";
+import { ProductResponse, Product } from "@/types/types";
 import { getOrCreateDeviceId } from "@/utils/deviceId";
 import { createApi, fetchBaseQuery } from "@reduxjs/toolkit/query/react";
 import { getLanguage } from "../languageBridge";
@@ -40,12 +40,13 @@ export const userApi = createApi({
     }),
     searchProducts: builder.mutation<
       ProductResponse,
-      { query: string; priceMaxETB?: number | null; minRating?: number | null }
+      { query: string; priceMaxETB?: number | null; minRating?: number | null; language?: string }
     >({
-      query: ({ query, priceMaxETB, minRating }) => {
+      query: ({ query, priceMaxETB, minRating, language }) => {
         const params = new URLSearchParams({ q: query });
         if (priceMaxETB) params.append("priceMaxETB", String(priceMaxETB));
         if (minRating) params.append("minRating", String(minRating));
+        if (language) params.append("language", language);
 
         return {
           url: `/search?${params.toString()}`, // ✅ use query params

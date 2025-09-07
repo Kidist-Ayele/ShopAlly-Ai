@@ -460,9 +460,9 @@ export default function Home() {
             isDarkMode ? "bg-[#090C11]/95" : "bg-[#FFFFFF]/95"
           }`}
         ></div>
-        <div className="relative p-2 sm:p-4">
+        <div className="relative px-4 sm:px-8 py-2 sm:py-4 flex justify-center">
           <div
-            className={`relative flex items-center border border-gray-300 dark:border-gray-600 rounded-xl overflow-hidden shadow-sm w-full ${
+            className={`relative flex items-center border border-gray-300 dark:border-gray-600 rounded-xl overflow-hidden shadow-sm w-full max-w-4xl ${
               isDarkMode
                 ? "bg-[#262B32] text-[#999999]"
                 : "bg-white text-[#999999]"

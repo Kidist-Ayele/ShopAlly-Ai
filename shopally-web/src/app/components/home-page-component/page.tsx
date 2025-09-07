@@ -5,6 +5,7 @@ import React, { useState, useEffect } from "react";
 import { FaHeart } from "react-icons/fa";
 import { useSavedItems } from "@/hooks/useSavedItems";
 import { SavedItem } from "@/types/types";
+import { formatPriceForEthiopia } from "@/utils/priceUtils";
 
 interface CardComponentProps {
   product: Product;
@@ -196,7 +197,7 @@ const CardComponent: React.FC<CardComponentProps> = ({ product }) => {
             className="text-2xl font-bold transition-colors"
             style={{ color: "var(--color-accent-primary)" }}
           >
-            ${product.price.usd}
+            {formatPriceForEthiopia(product.price)}
           </span>
           <div
             className="flex items-center gap-1 text-sm transition-colors"
@@ -232,7 +233,7 @@ const CardComponent: React.FC<CardComponentProps> = ({ product }) => {
               }}
             >
               <a href={product.deeplinkUrl} target="_blank" rel="noreferrer">
-                Buy On Alibaba
+                Buy from AliExpress
               </a>
             </button>
 
