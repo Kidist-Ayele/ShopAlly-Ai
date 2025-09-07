@@ -38,10 +38,10 @@ export default function NotFound() {
             Page Not Found
           </h2>
           <p className="text-gray-600 text-lg mb-2">
-            Oops! The page you're looking for
+            Oops! The page you&apos;re looking for
           </p>
           <p className="text-gray-600 text-lg mb-6">
-            doesn't exist in our ShopAlly AI universe.
+            doesn&apos;t exist in our ShopAlly AI universe.
           </p>
         </div>
 
