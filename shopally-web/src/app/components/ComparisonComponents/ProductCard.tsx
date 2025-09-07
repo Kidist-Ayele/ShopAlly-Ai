@@ -1,9 +1,8 @@
 // //src/app/components/ComparePage/ProductCard.tsx
-import { useDarkMode } from "@/app/components/ProfileComponents/DarkModeContext";
+// import { useDarkMode } from "@/app/components/ProfileComponents/DarkModeContext";
 import { useLanguage } from "@/hooks/useLanguage";
 import { useSavedItems } from "@/hooks/useSavedItems";
-import { Product } from "@/types/types";
-import { SavedItem } from "@/types/types";
+import { Product, SavedItem } from "@/types/types";
 import { FaHeart } from "react-icons/fa";
 import { FaCheck } from "react-icons/fa6";
 import { IoIosStar } from "react-icons/io";
@@ -11,7 +10,7 @@ import { useState } from "react";
 import { formatPriceForEthiopia } from "@/utils/priceUtils";
 
 export const ProductCard: React.FC<{ product: Product }> = ({ product }) => {
-  const { isDarkMode } = useDarkMode();
+  // const { isDarkMode } = useDarkMode();
   const { t } = useLanguage();
   const { savedItems, saveItem, removeItem, placeOrder } = useSavedItems();
   const [imageLoaded, setImageLoaded] = useState(false);
@@ -168,7 +167,12 @@ export const ProductCard: React.FC<{ product: Product }> = ({ product }) => {
               backgroundColor: "var(--color-accent-primary)",
               color: "var(--color-text-button)",
             }}
-            onClick={() => window.open(product.deeplinkUrl, "_blank")}
+            onClick={() => {
+              // Track the order when user clicks "Buy from AliExpress"
+              placeOrder(product.id, product.title, product.price);
+              // Open AliExpress link in new tab
+              window.open(product.deeplinkUrl, "_blank", "noopener,noreferrer");
+            }}
           >
             {t("Buy from AliExpress")}
           </button>

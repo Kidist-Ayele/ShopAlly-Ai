@@ -2,11 +2,11 @@
 
 import ProfileContent from "@/app/components/ProfileComponents/ProfileContent";
 import ProfileStats from "@/app/components/ProfileComponents/ProfileStats";
-import { useDarkMode } from "@/app/components/ProfileComponents/DarkModeContext";
+// import { useDarkMode } from "@/app/components/ProfileComponents/DarkModeContext";
 import { useLanguage } from "@/hooks/useLanguage";
 
 export default function ProfilePage() {
-  const { isDarkMode } = useDarkMode();
+  // const { isDarkMode } = useDarkMode();
   const { t } = useLanguage();
 
   return (

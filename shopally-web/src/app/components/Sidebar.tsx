@@ -1,8 +1,9 @@
 "use client";
 
+import { signOut } from "next-auth/react";
 import Link from "next/link";
-import { useDarkMode } from "./ProfileComponents/DarkModeContext";
 import { useLanguage } from "../../hooks/useLanguage";
+import { useDarkMode } from "./ProfileComponents/DarkModeContext";
 
 interface SidebarProps {
   activePage?: string;
@@ -231,6 +232,12 @@ export default function Sidebar({ activePage = "profile" }: SidebarProps) {
               <span className="hidden lg:block">
                 {isDarkMode ? t("Light Mode") : t("Dark Mode")}
               </span>
+            </button>
+            <button
+              onClick={() => signOut({ callbackUrl: "/api/auth/signin" })}
+              className="flex items-center justify-center lg:justify-start gap-2 lg:gap-3 px-2 py-2 lg:px-3 lg:py-2 rounded-md w-full transition-colors hover:opacity-80"
+            >
+              Logout
             </button>
           </li>
         </ul>

@@ -65,7 +65,12 @@ export const useSavedItems = (maxItems = 50) => {
         placeholderText: "IMG",
       };
 
-      const newList = [...prev.filter((i) => i.id !== item.id), uiItem];
+      let newList = [...prev.filter((i) => i.id !== item.id), uiItem];
+
+      if (newList.length > maxItems) {
+        newList = newList.slice(newList.length - maxItems);
+      }
+
       localStorage.setItem(
         LOCAL_DB_KEY,
         JSON.stringify({ savedItems: newList })
@@ -145,7 +150,7 @@ export const useSavedItems = (maxItems = 50) => {
             currentPriceETB: item.price.etb,
           }).unwrap();
 
-          const alertId = res.data?.data?.alertId;
+          const alertId = res.data?.alertId;
           console.log("Alert created successfully:", res);
           console.log("alertId from response:", alertId);
 

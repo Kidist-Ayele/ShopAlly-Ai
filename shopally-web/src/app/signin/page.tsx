@@ -5,10 +5,14 @@ import Image from "next/image";
 import { useSearchParams } from "next/navigation";
 import { useEffect, useState } from "react";
 
-export default function CustomSignIn() {
-  // const router = useRouter();
+export default function SignInPage() {
   const searchParams = useSearchParams();
   const callbackUrl = searchParams.get("callbackUrl") || "/home";
+
+  // Fix callback URL if it's pointing to wrong endpoint
+  const fixedCallbackUrl = callbackUrl.includes("/api/auth/signin")
+    ? "/home"
+    : callbackUrl;
   const [isLoading, setIsLoading] = useState(false);
   const [providers, setProviders] = useState<Record<
     string,
@@ -17,8 +21,12 @@ export default function CustomSignIn() {
 
   useEffect(() => {
     const fetchProviders = async () => {
-      const res = await getProviders();
-      setProviders(res);
+      try {
+        const res = await getProviders();
+        setProviders(res);
+      } catch (error) {
+        console.error("Error fetching providers:", error);
+      }
     };
     fetchProviders();
   }, []);
@@ -26,7 +34,7 @@ export default function CustomSignIn() {
   const handleGoogleSignIn = async () => {
     setIsLoading(true);
     try {
-      await signIn("google", { callbackUrl });
+      await signIn("google", { callbackUrl: fixedCallbackUrl });
     } catch (error) {
       console.error("Sign in error:", error);
       setIsLoading(false);
@@ -121,6 +129,19 @@ export default function CustomSignIn() {
                 </div>
               )}
             </button>
+          )}
+
+          {/* Error Message if Google provider is not available */}
+          {providers && !providers.google && (
+            <div className="mt-4 p-3 bg-red-50 border border-red-200 rounded-lg">
+              <p className="text-red-600 text-sm text-center">
+                ⚠️ Google OAuth is not configured. Please check environment
+                variables:
+                <br />
+                <code className="text-xs">GOOGLE_ID</code> and{" "}
+                <code className="text-xs">GOOGLE_SECRET</code>
+              </p>
+            </div>
           )}
 
           {/* Additional Info */}

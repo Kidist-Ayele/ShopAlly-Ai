@@ -1,7 +1,7 @@
 //src/app/(main)/home/page.tsx
 "use client";
 
-import CardComponent from "@/app/components/home-page-component/page";
+import CardComponent from "@/app/components/home-page-component/HomeCard";
 import { useDarkMode } from "@/app/components/ProfileComponents/DarkModeContext";
 import { useLanguage } from "@/hooks/useLanguage";
 import {

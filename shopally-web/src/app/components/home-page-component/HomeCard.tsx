@@ -1,4 +1,5 @@
-// src/app/components/home-page-component/page.tsx
+// src/app/components/home-page-component/HomeCard.tsx
+"use client";
 import { Product } from "@/types/types";
 import { Star } from "lucide-react";
 import React, { useState, useEffect } from "react";
@@ -62,12 +63,13 @@ const CardComponent: React.FC<CardComponentProps> = ({ product }) => {
       imageUrl: product.imageUrl,
       aiMatchPercentage: product.aiMatchPercentage,
       price: product.price,
-      productRating: product.productRating || 0,
-      sellerScore: product.sellerScore,
+      productRating: product.productRating ?? 0, // ✅ fallback to 0 if undefined
+      sellerScore: product.sellerScore, // use sellerScore, not numberSold
       deliveryEstimate: product.deliveryEstimate,
       summaryBullets: product.summaryBullets,
       deeplinkUrl: product.deeplinkUrl,
     };
+
     saveItem(savedItem);
     alert("Item saved!");
   };
@@ -231,10 +233,18 @@ const CardComponent: React.FC<CardComponentProps> = ({ product }) => {
                 backgroundColor: "var(--color-accent-primary)",
                 color: "var(--color-text-button)",
               }}
+              onClick={() => {
+                // Track the order when user clicks "Buy from AliExpress"
+                placeOrder(product.id, product.title, product.price);
+                // Open AliExpress link in new tab
+                window.open(
+                  product.deeplinkUrl,
+                  "_blank",
+                  "noopener,noreferrer"
+                );
+              }}
             >
-              <a href={product.deeplinkUrl} target="_blank" rel="noreferrer">
-                Buy from AliExpress
-              </a>
+              Buy from AliExpress
             </button>
 
             <button
