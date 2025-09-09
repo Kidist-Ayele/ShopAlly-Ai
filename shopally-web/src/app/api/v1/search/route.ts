@@ -1,5 +1,7 @@
-import { getLanguage } from "@/lib/redux/languageBridge";
+//src/app/api/search/route.ts
 import { ProductResponse } from "@/types/types";
+import { getDeviceIdServer } from "@/utils/deviceId.server";
+import { cookies } from "next/headers";
 import { NextRequest, NextResponse } from "next/server";
 
 const API_BASE = process.env.API_BASE;
@@ -13,7 +15,10 @@ export async function GET(
     const priceMaxETB = searchParams.get("priceMaxETB");
     const minRating = searchParams.get("minRating");
 
-    const deviceId = req.headers.get("x-device-id");
+    // Get deviceId and language from cookies
+    const cookieStore = await cookies();
+    const deviceId = (await getDeviceIdServer()) ?? "";
+    const langCode = cookieStore.get("lang")?.value || "en";
 
     if (!query || !deviceId) {
       return NextResponse.json(
@@ -21,8 +26,6 @@ export async function GET(
         { status: 400 }
       );
     }
-
-    const langCode = getLanguage() || "en-US";
 
     const url = `${API_BASE}/api/v1/search?${new URLSearchParams({
       q: query,

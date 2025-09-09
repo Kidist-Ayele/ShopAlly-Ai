@@ -1,6 +1,7 @@
 //src/app/api/v1/alerts/[alertId]/route.ts
-import { getLanguage } from "@/lib/redux/languageBridge";
 import { AlertCreateResponse } from "@/types/SavedItems/AlertCreateResponse";
+import { getDeviceIdServer } from "@/utils/deviceId.server";
+import { cookies } from "next/headers";
 import { NextRequest, NextResponse } from "next/server";
 
 const API_BASE = process.env.API_BASE;
@@ -12,8 +13,10 @@ export async function DELETE(
   const { alertId } = await context.params;
 
   try {
-    // ✅ Get deviceId from headers
-    const deviceId = req.headers.get("x-device-id");
+    // Get deviceId and Language from cookies
+    const cookieStore = await cookies();
+    const deviceId = (await getDeviceIdServer()) ?? "";
+    const langCode = cookieStore.get("lang")?.value || "en";
 
     if (!deviceId) {
       return NextResponse.json(
@@ -21,8 +24,6 @@ export async function DELETE(
         { status: 400 }
       );
     }
-
-    const langCode = getLanguage() || "en-US";
 
     const backendRes = await fetch(`${API_BASE}/api/v1/alerts/${alertId}`, {
       method: "DELETE",

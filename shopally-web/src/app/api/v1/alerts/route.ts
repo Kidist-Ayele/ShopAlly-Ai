@@ -1,6 +1,7 @@
 //src/app/api/v1/alerts/route.ts
-import { getLanguage } from "@/lib/redux/languageBridge";
 import { AlertCreateResponse } from "@/types/SavedItems/AlertCreateResponse";
+import { getDeviceIdServer } from "@/utils/deviceId.server";
+import { cookies } from "next/headers";
 import { NextRequest, NextResponse } from "next/server";
 
 const API_BASE = process.env.API_BASE;
@@ -10,20 +11,19 @@ export async function POST(
 ): Promise<NextResponse<AlertCreateResponse>> {
   try {
     const body = await req.json();
-    const { productId, currentPriceETB, deviceId: deviceIdFromBody } = body;
+    const { productId, currentPriceETB, deviceId } = body;
 
-    // ✅ Take deviceId from headers first, fallback to body
-    const deviceIdFromHeader = req.headers.get("x-device-id");
-    const deviceId = deviceIdFromHeader || deviceIdFromBody;
+    // Get deviceId and Language from cookies
+    const cookieStore = await cookies();
+    const deviceIdBody = (await getDeviceIdServer()) ?? "";
+    const langCode = cookieStore.get("lang")?.value || "en";
 
-    if (!productId || !deviceId || !currentPriceETB) {
+    if (!productId || !deviceIdBody || !currentPriceETB) {
       return NextResponse.json(
         { error: "Missing required fields", data: null },
         { status: 400 }
       );
     }
-
-    const langCode = getLanguage() || "en-US";
 
     const response = await fetch(`${API_BASE}/api/v1/alerts`, {
       method: "POST",
@@ -32,7 +32,7 @@ export async function POST(
         "X-Device-ID": deviceId,
         "Accept-Language": langCode,
       },
-      body: JSON.stringify({ productId, deviceId, currentPriceETB }),
+      body: JSON.stringify({ productId, deviceIdBody, currentPriceETB }),
     });
 
     const data = await response.json();

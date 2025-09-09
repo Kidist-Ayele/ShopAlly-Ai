@@ -3,8 +3,8 @@ import { ComparisonResponse } from "@/types/Compare/Comparison";
 import { AlertCreateResponse } from "@/types/SavedItems/AlertCreateResponse";
 import { AlertDeleteResponse } from "@/types/SavedItems/AlertDeleteResponse";
 import { CreateAlert } from "@/types/SavedItems/SavedItems";
-import { ProductResponse, Product } from "@/types/types";
-import { getOrCreateDeviceId } from "@/utils/deviceId";
+import { Product, ProductResponse } from "@/types/types";
+import { getDeviceIdClient } from "@/utils/deviceId.client";
 import { createApi, fetchBaseQuery } from "@reduxjs/toolkit/query/react";
 import { getLanguage } from "../languageBridge";
 
@@ -18,8 +18,8 @@ export const userApi = createApi({
         headers.set("Accept-Language", langCode);
       }
 
-      const deviceId = getOrCreateDeviceId();
-      headers.set("x-device-id", deviceId);
+      const deviceId = getDeviceIdClient();
+      if (deviceId) headers.set("x-device-id", deviceId);
 
       return headers;
     },
@@ -40,7 +40,12 @@ export const userApi = createApi({
     }),
     searchProducts: builder.mutation<
       ProductResponse,
-      { query: string; priceMaxETB?: number | null; minRating?: number | null; language?: string }
+      {
+        query: string;
+        priceMaxETB?: number | null;
+        minRating?: number | null;
+        language?: string;
+      }
     >({
       query: ({ query, priceMaxETB, minRating, language }) => {
         const params = new URLSearchParams({ q: query });
