@@ -1,6 +1,5 @@
 //src/app/api/v1/alerts/route.ts
 import { AlertCreateResponse } from "@/types/SavedItems/AlertCreateResponse";
-import { getDeviceIdServer } from "@/utils/deviceId.server";
 import { cookies } from "next/headers";
 import { NextRequest, NextResponse } from "next/server";
 
@@ -11,14 +10,25 @@ export async function POST(
 ): Promise<NextResponse<AlertCreateResponse>> {
   try {
     const body = await req.json();
-    const { productId, currentPriceETB, deviceId } = body;
-
+    const { productId, currentPriceETB } = body;
     // Get deviceId and Language from cookies
     const cookieStore = await cookies();
-    const deviceIdBody = (await getDeviceIdServer()) ?? "";
+    const deviceId = cookieStore.get("deviceId")?.value;
     const langCode = cookieStore.get("lang")?.value || "en";
 
-    if (!productId || !deviceIdBody || !currentPriceETB) {
+    // If deviceId is missing, inform client to wait for FCM token
+    if (!deviceId) {
+      return NextResponse.json(
+        {
+          error:
+            "Device ID not available yet. Please wait for notifications setup.",
+          data: null,
+        },
+        { status: 409 } // 409 Conflict to indicate precondition not met
+      );
+    }
+
+    if (!productId || !currentPriceETB) {
       return NextResponse.json(
         { error: "Missing required fields", data: null },
         { status: 400 }
@@ -32,7 +42,7 @@ export async function POST(
         "X-Device-ID": deviceId,
         "Accept-Language": langCode,
       },
-      body: JSON.stringify({ productId, deviceIdBody, currentPriceETB }),
+      body: JSON.stringify({ productId, deviceId, currentPriceETB }),
     });
 
     const data = await response.json();

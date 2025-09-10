@@ -2,9 +2,11 @@
 import { ComparisonResponse } from "@/types/Compare/Comparison";
 import { AlertCreateResponse } from "@/types/SavedItems/AlertCreateResponse";
 import { AlertDeleteResponse } from "@/types/SavedItems/AlertDeleteResponse";
-import { CreateAlert } from "@/types/SavedItems/SavedItems";
+import {
+  CreateAlert,
+  UpdateProductResponse,
+} from "@/types/SavedItems/SavedItems";
 import { Product, ProductResponse } from "@/types/types";
-import { getDeviceIdClient } from "@/utils/deviceId.client";
 import { createApi, fetchBaseQuery } from "@reduxjs/toolkit/query/react";
 import { getLanguage } from "../languageBridge";
 
@@ -12,14 +14,11 @@ export const userApi = createApi({
   reducerPath: "userApi",
   baseQuery: fetchBaseQuery({
     baseUrl: "/api/v1",
-    prepareHeaders: (headers) => {
+    prepareHeaders: async (headers) => {
       const langCode = getLanguage();
       if (langCode) {
         headers.set("Accept-Language", langCode);
       }
-
-      const deviceId = getDeviceIdClient();
-      if (deviceId) headers.set("x-device-id", deviceId);
 
       return headers;
     },
@@ -70,6 +69,15 @@ export const userApi = createApi({
         body: data,
       }),
     }),
+
+    updatePrice: builder.mutation<UpdateProductResponse, { productId: string }>(
+      {
+        query: ({ productId }) => ({
+          url: `product/${productId}/price`,
+          method: "GET",
+        }),
+      }
+    ),
   }),
 });
 
@@ -78,4 +86,5 @@ export const {
   useDeleteAlertMutation,
   useSearchProductsMutation,
   useCompareProductsMutation,
+  useUpdatePriceMutation,
 } = userApi;

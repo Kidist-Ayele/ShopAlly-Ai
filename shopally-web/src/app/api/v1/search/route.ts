@@ -1,6 +1,5 @@
 //src/app/api/search/route.ts
 import { ProductResponse } from "@/types/types";
-import { getDeviceIdServer } from "@/utils/deviceId.server";
 import { cookies } from "next/headers";
 import { NextRequest, NextResponse } from "next/server";
 
@@ -15,12 +14,24 @@ export async function GET(
     const priceMaxETB = searchParams.get("priceMaxETB");
     const minRating = searchParams.get("minRating");
 
-    // Get deviceId and language from cookies
+    // Get deviceId and Language from cookies
     const cookieStore = await cookies();
-    const deviceId = (await getDeviceIdServer()) ?? "";
+    const deviceId = cookieStore.get("deviceId")?.value;
     const langCode = cookieStore.get("lang")?.value || "en";
 
-    if (!query || !deviceId) {
+    // If deviceId is missing, inform client to wait for FCM token
+    if (!deviceId) {
+      return NextResponse.json(
+        {
+          error:
+            "Device ID not available yet. Please wait for notifications setup.",
+          data: null,
+        },
+        { status: 409 } // 409 Conflict to indicate precondition not met
+      );
+    }
+
+    if (!query) {
       return NextResponse.json(
         { error: "Missing required fields", data: null },
         { status: 400 }

@@ -1,6 +1,5 @@
 //src/app/api/v1/alerts/[alertId]/route.ts
 import { AlertCreateResponse } from "@/types/SavedItems/AlertCreateResponse";
-import { getDeviceIdServer } from "@/utils/deviceId.server";
 import { cookies } from "next/headers";
 import { NextRequest, NextResponse } from "next/server";
 
@@ -13,15 +12,19 @@ export async function DELETE(
   const { alertId } = await context.params;
 
   try {
-    // Get deviceId and Language from cookies
     const cookieStore = await cookies();
-    const deviceId = (await getDeviceIdServer()) ?? "";
+    const deviceId = cookieStore.get("deviceId")?.value;
     const langCode = cookieStore.get("lang")?.value || "en";
 
+    // If deviceId is missing, inform client to wait for FCM token
     if (!deviceId) {
       return NextResponse.json(
-        { error: "Device ID is required", data: null },
-        { status: 400 }
+        {
+          error:
+            "Device ID not available yet. Please wait for notifications setup.",
+          data: null,
+        },
+        { status: 409 } // 409 Conflict to indicate precondition not met
       );
     }
 

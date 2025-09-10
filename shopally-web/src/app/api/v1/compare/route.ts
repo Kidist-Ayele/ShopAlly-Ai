@@ -1,7 +1,6 @@
 // src/app/api/v1/compare/route.ts
 import { ComparisonResponse } from "@/types/Compare/Comparison";
 import { Product } from "@/types/types";
-import { getDeviceIdServer } from "@/utils/deviceId.server";
 import { cookies } from "next/headers";
 import { NextRequest, NextResponse } from "next/server";
 
@@ -31,7 +30,7 @@ export async function POST(
 
     // Get deviceId and Language from cookies
     const cookieStore = await cookies();
-    const deviceId = (await getDeviceIdServer()) ?? "";
+    const deviceId = cookieStore.get("deviceId")?.value;
     const langCode = cookieStore.get("lang")?.value || "en";
 
     if (
