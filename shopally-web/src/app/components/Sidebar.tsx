@@ -29,6 +29,24 @@ export default function Sidebar({ activePage = "profile" }: SidebarProps) {
         </svg>
       ),
     },
+       {
+      id: "history",
+      label: t("History"),
+      path: "/history",
+      icon: (
+        <svg
+          className="w-4 h-4 lg:w-5 lg:h-5"
+          fill="currentColor"
+          viewBox="0 0 20 20"
+        >
+          <path
+            fillRule="evenodd"
+            d="M10 18a8 8 0 100-16 8 8 0 000 16zm.75-11a.75.75 0 00-1.5 0v3.25c0 .414.336.75.75.75h3.25a.75.75 0 000-1.5H10.75V7z"
+            clipRule="evenodd"
+          />
+        </svg>
+      ),
+    },
     {
       id: "how-it-works",
       label: t("How It Works"),
