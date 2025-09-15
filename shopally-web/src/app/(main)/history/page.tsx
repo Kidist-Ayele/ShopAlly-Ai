@@ -1,3 +1,4 @@
+//src/app/(main)/history/page.tsx
 "use client";
 
 import ChatHistoryUI from "@/app/components/Chat/ChatHistoryUI";

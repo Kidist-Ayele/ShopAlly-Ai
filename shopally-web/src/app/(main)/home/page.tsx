@@ -15,6 +15,15 @@ import { FetchBaseQueryError } from "@reduxjs/toolkit/query";
 import { ArrowRight, Loader2, MessageCircleMore } from "lucide-react";
 import { useEffect, useState } from "react";
 
+// new //
+import {
+  useAddNewMessageMutation,
+  useCreateChatMutation,
+} from "@/lib/redux/api/chatApiSlice";
+import { ChatProduct } from "@/types/chat/chatTypes";
+import { useSession } from "next-auth/react";
+// new //
+
 interface ConversationMessage {
   id: string;
   type: "user" | "ai";
@@ -26,6 +35,20 @@ interface ConversationMessage {
 export default function Home() {
   const { t } = useLanguage();
   const { isDarkMode } = useDarkMode();
+
+  // new //
+  const { data: session } = useSession();
+  const userEmail: string | null = session?.user?.email ?? null;
+  const [createChat] = useCreateChatMutation();
+  const [addNewMessage] = useAddNewMessageMutation();
+  const getStoredChatId = (): string | null => {
+    return localStorage.getItem("chatId");
+  };
+
+  const setStoredChatId = (id: string) => {
+    localStorage.setItem("chatId", id);
+  };
+  // new //
 
   const [conversation, setConversation] = useState<ConversationMessage[]>([]);
   const [isClient, setIsClient] = useState(false);
@@ -86,6 +109,47 @@ export default function Home() {
 
       // Add AI response to conversation
       setConversation((prev) => [...prev, aiMessage]);
+
+      // new //
+      (async () => {
+        try {
+          let chatId = getStoredChatId();
+
+          if (!userEmail) {
+            console.error("❌ No user email in session");
+            return;
+          }
+
+          if (!chatId) {
+            // No chat exists → create one
+            const newChat = await createChat({
+              userEmail,
+              data: { chat_title: userInput }, // use the user's input for title
+            }).unwrap();
+
+            chatId = newChat.data?.chat_id ?? null;
+            if (chatId) setStoredChatId(chatId);
+          }
+
+          if (chatId) {
+            // Add the AI response as a message
+            await addNewMessage({
+              userEmail,
+              chatId,
+              data: {
+                user_prompt: userInput,
+                products: products.map((p) => ({
+                  ...p,
+                  removeProduct: false,
+                })) as ChatProduct[],
+              },
+            }).unwrap();
+          }
+        } catch (err) {
+          console.error("❌ Chat persistence failed:", err);
+        }
+      })();
+      // new //
     } catch (err) {
       console.error("❌ Search failed:", err);
 
@@ -410,9 +474,9 @@ export default function Home() {
                         {(expandedMessages.has(message.id)
                           ? message.products
                           : message.products.slice(0, 4)
-                        ).map((product, i) => (
+                        ).map((product) => (
                           <CardComponent
-                            key={`${message.id}-product-${i}`}
+                            key={`${message.id}-product-${product.id}`} // 🔑 FIX: use product.id instead of index
                             product={product}
                           />
                         ))}

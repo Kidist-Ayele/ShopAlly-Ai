@@ -19,7 +19,7 @@ import { getLanguage } from "../languageBridge";
 export const chatApi = createApi({
   reducerPath: "chatApi",
   baseQuery: fetchBaseQuery({
-    baseUrl: "/api/v1/users",
+    baseUrl: "/api/chat-history/v1/users",
     prepareHeaders: async (headers) => {
       const langCode = getLanguage();
       if (langCode) {
@@ -36,7 +36,7 @@ export const chatApi = createApi({
         method: "GET",
       }),
     }),
-    getChat: builder.query<GetChatResponse, GetChatRequest>({
+    getChat: builder.mutation<GetChatResponse, GetChatRequest>({
       query: ({ userEmail, chatId }) => ({
         url: `${userEmail}/chats/${chatId}`,
         method: "GET",
@@ -70,7 +70,7 @@ export const chatApi = createApi({
 
 export const {
   useGetAllChatMutation,
-  useGetChatQuery,
+  useGetChatMutation,
   useCreateChatMutation,
   useAddNewMessageMutation,
   useDeleteChatMutation,
