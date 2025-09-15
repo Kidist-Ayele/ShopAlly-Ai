@@ -42,13 +42,13 @@ export interface ChatProduct {
   productRating: number;
   sellerScore: number;
   deliveryEstimate: string;
-  description: string;
-  productSmallImageUrls: string[];
-  numberSold: number;
+  description?: string; // ✅ optional
+  productSmallImageUrls?: string[]; // ✅ optional
+  numberSold?: number; // ✅ optional
   summaryBullets: string[];
   deeplinkUrl: string;
-  taxRate: number;
-  discount: number;
+  taxRate?: number; // ✅ optional
+  discount?: number; // ✅ optional
   removeProduct: boolean;
 }
 

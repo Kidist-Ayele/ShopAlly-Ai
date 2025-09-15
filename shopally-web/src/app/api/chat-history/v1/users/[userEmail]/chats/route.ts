@@ -1,4 +1,4 @@
-// src/app/api/v1/users/[userEmail]/chats/route.ts
+// src/app/api/chat-history/v1/users/[userEmail]/chats/route.ts
 import {
   CreateChatResponse,
   GetAllChatResponse,
@@ -6,15 +6,17 @@ import {
 import { cookies } from "next/headers";
 import { NextRequest, NextResponse } from "next/server";
 
-const API_BASE = process.env.API_BASE;
+const API_BASE = process.env.CHAT_HISTORY_API_BASE;
+
+console.log("🔎 CHAT_HISTORY_API_BASE:", API_BASE);
 
 // ✅ POST /users/{userEmail}/chats → Create a new chat
 export async function POST(
   req: NextRequest,
-  { params }: { params: { userEmail: string } }
+  context: { params: Promise<{ userEmail: string }> }
 ): Promise<NextResponse<CreateChatResponse>> {
   try {
-    const { userEmail } = params;
+    const { userEmail } = await context.params;
     const body = await req.json();
 
     // Get deviceId and language from cookies
@@ -33,7 +35,9 @@ export async function POST(
     }
 
     const backendRes = await fetch(
-      `${API_BASE}/users/${encodeURIComponent(userEmail)}/chats`,
+      `${API_BASE}/api/chat-history/v1/users/${encodeURIComponent(
+        userEmail
+      )}/chats`,
       {
         method: "POST",
         headers: {
@@ -62,10 +66,10 @@ export async function POST(
 // ✅ GET /users/{userEmail}/chats → Get all chats
 export async function GET(
   _req: NextRequest,
-  { params }: { params: { userEmail: string } }
+  context: { params: Promise<{ userEmail: string }> }
 ): Promise<NextResponse<GetAllChatResponse>> {
   try {
-    const { userEmail } = params;
+    const { userEmail } = await context.params; // 🔹 FIX: params must be awaited
 
     // Get deviceId and language from cookies
     const cookieStore = await cookies();
@@ -87,7 +91,9 @@ export async function GET(
     }
 
     const backendRes = await fetch(
-      `${API_BASE}/users/${encodeURIComponent(userEmail)}/chats`,
+      `${API_BASE}/api/chat-history/v1/users/${encodeURIComponent(
+        userEmail
+      )}/chats`,
       {
         headers: {
           "X-Device-ID": deviceId,
@@ -96,7 +102,26 @@ export async function GET(
       }
     );
 
-    const data = (await backendRes.json()) as GetAllChatResponse;
+    // Read raw text first (helps debugging if not JSON)
+    const text = await backendRes.text();
+
+    let data: GetAllChatResponse;
+    try {
+      data = JSON.parse(text);
+    } catch {
+      console.error("Backend returned non-JSON instead of chats:", text);
+      return NextResponse.json(
+        {
+          data: [],
+          error: {
+            code: "INVALID_BACKEND_RESPONSE",
+            message: "Backend did not return valid JSON",
+          },
+        },
+        { status: 502 }
+      );
+    }
+
     return NextResponse.json(data, { status: backendRes.status });
   } catch (error) {
     console.error("Get all chats failed:", error);

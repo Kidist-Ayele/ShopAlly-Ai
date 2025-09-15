@@ -1,17 +1,17 @@
-// src/app/api/v1/users/[userEmail]/chats/[chatId]/messages/route.ts
+// src/app/api/chat-history/v1/users/[userEmail]/chats/[chatId]/messages/route.ts
 import { AddNewMessageResponse } from "@/types/chat/chatResponses";
 import { cookies } from "next/headers";
 import { NextRequest, NextResponse } from "next/server";
 
-const API_BASE = process.env.API_BASE;
+const API_BASE = process.env.CHAT_HISTORY_API_BASE;
 
 // ✅ POST /users/{userEmail}/chats/{chatId}/messages → Add a new message
 export async function POST(
   req: NextRequest,
-  { params }: { params: { userEmail: string; chatId: string } }
+  context: { params: Promise<{ userEmail: string; chatId: string }> } // 🔹 change here
 ): Promise<NextResponse<AddNewMessageResponse>> {
   try {
-    const { userEmail, chatId } = params;
+    const { userEmail, chatId } = await context.params;
     const body = await req.json();
 
     const cookieStore = await cookies();
@@ -32,7 +32,7 @@ export async function POST(
     }
 
     const backendRes = await fetch(
-      `${API_BASE}/users/${encodeURIComponent(
+      `${API_BASE}/api/chat-history/v1/users/${encodeURIComponent(
         userEmail
       )}/chats/${encodeURIComponent(chatId)}/messages`,
       {
