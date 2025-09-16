@@ -28,7 +28,7 @@ export default function SavedItemCard({
   imageUrl,
   rating,
   ratingCount,
-  price,
+  price: initialPrice,
   oldPrice,
   seller,
   checked,
@@ -44,6 +44,11 @@ export default function SavedItemCard({
   const { isDarkMode } = useDarkMode();
   const { t } = useLanguage();
 
+  // Get current price from hook to ensure we have the latest value
+  const { savedItems, refreshPrice, isPriceLoading } = useSavedItems();
+  const currentItem = savedItems.find((item) => item.id === id);
+  const price = currentItem?.price || initialPrice;
+
   // Image loading states
   const [imageLoaded, setImageLoaded] = useState(false);
   const [imageError, setImageError] = useState(false);
@@ -56,8 +61,6 @@ export default function SavedItemCard({
     }
     return imageUrl;
   };
-
-  const { refreshPrice } = useSavedItems();
 
   return (
     <div
@@ -213,15 +216,23 @@ export default function SavedItemCard({
           </button>
 
           <button
-            className="w-full font-medium py-3 px-6 rounded-xl hover:opacity-80 transition-colors border"
+            className="w-full font-medium py-3 px-6 rounded-xl hover:opacity-80 transition-colors border disabled:opacity-50 disabled:cursor-not-allowed"
             style={{
               backgroundColor: "var(--color-bg-tertiary)",
               color: "var(--color-text-primary)",
               borderColor: "var(--color-border-primary)",
             }}
             onClick={() => refreshPrice(id)}
+            disabled={isPriceLoading(id)}
           >
-            {t("Update Price")}
+            {isPriceLoading(id) ? (
+              <div className="flex items-center justify-center gap-2">
+                <div className="w-4 h-4 border-2 border-current border-t-transparent rounded-full animate-spin"></div>
+                {t("Updating...")}
+              </div>
+            ) : (
+              t("Update Price")
+            )}
           </button>
 
           <div className="flex gap-3">
