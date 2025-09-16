@@ -319,8 +319,9 @@ export const useSavedItems = (maxItems = 50) => {
         // Set loading state for this item
         setLoadingPrices(prev => new Set(prev).add(itemId));
 
-        // find the product in savedItems
-        const item = savedItems.find((i) => i.id === itemId);
+        // find the product using global state as source of truth
+        const currentItems = globalSavedItems.length > 0 ? globalSavedItems : savedItems;
+        const item = currentItems.find((i) => i.id === itemId);
         if (!item) {
           console.warn("Product not found in savedItems");
           return;
@@ -339,7 +340,6 @@ export const useSavedItems = (maxItems = 50) => {
         console.log("⏰ Response timestamp:", new Date().toISOString());
 
         if (res?.data) {
-          // Calculate ETB price if backend returns 0
           const backendETB = res.data?.updated_price_etb ?? 0;
           const backendUSD = res.data?.updated_price_usd ?? 0;
           
@@ -349,37 +349,55 @@ export const useSavedItems = (maxItems = 50) => {
           console.log("💰 Old ETB:", item.price.etb);
           console.log("💰 Old USD:", item.price.usd);
           
-          // Always use the same exchange rate as homepage to maintain consistency
           let finalETB = backendETB;
-          const oldETB = item.price.etb;
-          const oldUSD = item.price.usd;
           
-          if (oldETB > 0 && oldUSD > 0) {
-            // Use the same exchange rate that was used when the item was first saved (homepage calculation)
-            const exchangeRate = oldETB / oldUSD;
-            finalETB = backendUSD * exchangeRate;
-            console.log("🔄 Using HOMEPAGE exchange rate:", exchangeRate, "→ Final ETB:", finalETB);
-            console.log("📊 Price consistency check:");
-            console.log("   Old: USD", oldUSD, "→ ETB", oldETB, "(rate:", exchangeRate, ")");
-            console.log("   New: USD", backendUSD, "→ ETB", finalETB, "(same rate:", exchangeRate, ")");
-          } else if (backendETB > 0) {
-            // If we can't calculate from old price, use backend ETB
+          // If backend returns valid ETB, use it exactly
+          if (backendETB > 0) {
             finalETB = backendETB;
-            console.log("🔄 Using backend ETB:", finalETB);
-          } else {
-            // Fallback to the default rate if we can't calculate from old price
-            const USD_TO_ETB_RATE = 57.5;
-            finalETB = backendUSD * USD_TO_ETB_RATE;
-            console.log("🔄 Using default exchange rate:", USD_TO_ETB_RATE, "→ Final ETB:", finalETB);
+            console.log("✅ Using backend ETB exactly:", finalETB);
+          } 
+          // If backend only returns USD, calculate ETB using homepage rate
+          else if (backendUSD > 0) {
+            const oldETB = item.price.etb;
+            const oldUSD = item.price.usd;
+            
+            if (oldETB > 0 && oldUSD > 0) {
+              // Use the same exchange rate as homepage
+              const exchangeRate = oldETB / oldUSD;
+              finalETB = backendUSD * exchangeRate;
+              console.log("🔄 Backend only has USD, calculating ETB using homepage rate:", exchangeRate, "→ Final ETB:", finalETB);
+            } else {
+              // Fallback to default rate (matches backend)
+              const USD_TO_ETB_RATE = 142.47;
+              finalETB = backendUSD * USD_TO_ETB_RATE;
+              console.log("🔄 Using default exchange rate:", USD_TO_ETB_RATE, "→ Final ETB:", finalETB);
+            }
           }
           
-          console.log("✅ Final calculated prices:");
+          console.log("✅ Final prices:");
           console.log("💰 Final ETB:", finalETB);
           console.log("💰 Final USD:", backendUSD);
 
           // ✅ only update etb and usd, keep fxTimestamp fresh
+          const updateAllInstances = (newList: SavedItemUI[]) => {
+            globalSavedItems = newList;
+            
+            // Clear any pending timeout to avoid conflicts
+            if (updateTimeout) {
+              clearTimeout(updateTimeout);
+            }
+            
+            // Defer state updates to avoid render phase conflicts
+            updateTimeout = setTimeout(() => {
+              globalSetters.forEach(setter => setter(newList));
+              updateTimeout = null;
+            }, 0);
+          };
+
           setSavedItems((prev) => {
-            const newList = prev.map((i) =>
+            // Use the most current state available
+            const baseList = globalSavedItems.length > 0 ? globalSavedItems : prev;
+            const newList = baseList.map((i) =>
               i.id === itemId
                 ? {
                     ...i,
@@ -400,7 +418,9 @@ export const useSavedItems = (maxItems = 50) => {
               LOCAL_DB_KEY,
               JSON.stringify({ savedItems: newList })
             );
-            console.log("📦 savedItems inside refreshPrice updater:", newList);
+            
+            // Update all instances
+            updateAllInstances(newList);
             return newList;
           });
 

@@ -28,7 +28,7 @@ export default function SavedItemCard({
   imageUrl,
   rating,
   ratingCount,
-  price,
+  price: initialPrice,
   oldPrice,
   seller,
   checked,
@@ -44,6 +44,11 @@ export default function SavedItemCard({
   const { isDarkMode } = useDarkMode();
   const { t } = useLanguage();
 
+  // Get current price from hook to ensure we have the latest value
+  const { savedItems, refreshPrice, isPriceLoading } = useSavedItems();
+  const currentItem = savedItems.find((item) => item.id === id);
+  const price = currentItem?.price || initialPrice;
+
   // Image loading states
   const [imageLoaded, setImageLoaded] = useState(false);
   const [imageError, setImageError] = useState(false);
@@ -56,8 +61,6 @@ export default function SavedItemCard({
     }
     return imageUrl;
   };
-
-  const { refreshPrice, isPriceLoading } = useSavedItems();
 
   return (
     <div
