@@ -5,6 +5,7 @@ import HowItWorks from "@/app/components/HowItWorks/HowItWorks";
 import PopularSearches from "@/app/components/LandingPageComponents/PopularSearches";
 import FeaturedDeals from "@/app/components/LandingPageComponents/FeaturedDeals";
 import Footer from "@/app/components/LandingPageComponents/Footer";
+import QRCodeSection from "@/app/components/LandingPageComponents/QRCodeSection";
 
 export default function Home() {
   return (
@@ -18,6 +19,7 @@ export default function Home() {
         <HowItWorks />
         <PopularSearches />
         <FeaturedDeals />
+        <QRCodeSection />
       </div>
 
       <Footer />
