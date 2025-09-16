@@ -14,7 +14,6 @@ import { SerializedError } from "@reduxjs/toolkit";
 import { FetchBaseQueryError } from "@reduxjs/toolkit/query";
 import { ArrowRight, Loader2, MessageCircleMore } from "lucide-react";
 import { useEffect, useState } from "react";
-import SidebarProductDescription from "@/app/components/home-page-component/Product-Description";
 
 // new //
 import {
@@ -42,7 +41,6 @@ export default function Home() {
   const userEmail: string | null = session?.user?.email ?? null;
   const [createChat] = useCreateChatMutation();
   const [addNewMessage] = useAddNewMessageMutation();
-  const [selectedProduct, setSelectedProduct] = useState<Product | null>(null);
   const getStoredChatId = (): string | null => {
     return localStorage.getItem("chatId");
   };
@@ -477,16 +475,12 @@ export default function Home() {
                           ? message.products
                           : message.products.slice(0, 4)
                         ).map((product) => (
-                          <div
-                            key={`${message.id}-product-${product.id}`}
-                            onClick={() => setSelectedProduct(product)}
-                            className="cursor-pointer"
-                          >
-                            <CardComponent product={product} />
-                          </div>
+                          <CardComponent
+                            key={`${message.id}-product-${product.id}`} // 🔑 FIX: use product.id instead of index
+                            product={product}
+                          />
                         ))}
                       </div>
-
 
                       {/* See More Button */}
                       {message.products.length > 4 && (
@@ -562,12 +556,6 @@ export default function Home() {
           </div>
         </div>
       </section>
-
-      {/* side bar */}
-      <SidebarProductDescription
-        product={selectedProduct}
-        onClose={() => setSelectedProduct(null)}
-      />
     </main>
   );
 }
