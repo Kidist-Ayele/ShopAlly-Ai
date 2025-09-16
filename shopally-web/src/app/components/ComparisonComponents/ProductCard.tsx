@@ -1,7 +1,7 @@
 // //src/app/components/ComparePage/ProductCard.tsx
 // import { useDarkMode } from "@/app/components/ProfileComponents/DarkModeContext";
 import { useLanguage } from "@/hooks/useLanguage";
-import { useSavedItems } from "@/hooks/useSavedItems";
+import { useSavedItemsContext } from "@/app/components/saved-items/SavedItemsContext";
 import { Product, SavedItem } from "@/types/types";
 import { FaHeart } from "react-icons/fa";
 import { FaCheck } from "react-icons/fa6";
@@ -12,7 +12,8 @@ import { formatPriceForEthiopia } from "@/utils/priceUtils";
 export const ProductCard: React.FC<{ product: Product }> = ({ product }) => {
   // const { isDarkMode } = useDarkMode();
   const { t } = useLanguage();
-  const { savedItems, saveItem, removeItem, placeOrder } = useSavedItems();
+  const { savedItems, saveItem, removeItem, placeOrder } =
+    useSavedItemsContext();
   const [imageLoaded, setImageLoaded] = useState(false);
   const [imageError, setImageError] = useState(false);
   const [retryCount, setRetryCount] = useState(0);

@@ -4,7 +4,7 @@ import { Product } from "@/types/types";
 import { Star } from "lucide-react";
 import React, { useState, useEffect } from "react";
 import { FaHeart } from "react-icons/fa";
-import { useSavedItems } from "@/hooks/useSavedItems";
+import { useSavedItemsContext } from "@/app/components/saved-items/SavedItemsContext";
 import { SavedItem } from "@/types/types";
 import { formatPriceForEthiopia } from "@/utils/priceUtils";
 
@@ -18,7 +18,8 @@ const CardComponent: React.FC<CardComponentProps> = ({ product }) => {
   const [imageLoaded, setImageLoaded] = useState(false);
   const [imageError, setImageError] = useState(false);
   const [retryCount, setRetryCount] = useState(0);
-  const { savedItems, saveItem, removeItem, placeOrder } = useSavedItems();
+  const { savedItems, saveItem, removeItem, placeOrder } =
+    useSavedItemsContext();
 
   // Check if this product is already saved
   const isSaved = savedItems.some((item) => item.id === product.id);

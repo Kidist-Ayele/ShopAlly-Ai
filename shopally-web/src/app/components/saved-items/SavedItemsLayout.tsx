@@ -2,7 +2,7 @@
 
 import { useDarkMode } from "@/app/components/ProfileComponents/DarkModeContext";
 import OfflineAlert from "@/app/components/saved-items/OfflineAlert";
-import { useSavedItems } from "@/hooks/useSavedItems";
+import { useSavedItemsContext } from "@/app/components/saved-items/SavedItemsContext";
 import React from "react";
 
 export default function SavedItemsLayout({
@@ -11,7 +11,7 @@ export default function SavedItemsLayout({
   children: React.ReactNode;
 }) {
   const { isDarkMode } = useDarkMode();
-  const savedItemsHook = useSavedItems(); // single hook instance
+  const savedItemsHook = useSavedItemsContext(); // single hook instance
 
   return (
     <div

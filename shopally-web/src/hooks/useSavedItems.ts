@@ -8,7 +8,7 @@ import {
 } from "@/lib/redux/api/userApiSlice";
 import { AlertCreateResponse } from "@/types/SavedItems/AlertCreateResponse";
 import type { SavedItem, SavedItemUI } from "@/types/types";
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useState, useRef } from "react";
 
 const LOCAL_DB_KEY = "itemsList";
 const ORDERS_DB_KEY = "ordersList";
@@ -42,12 +42,19 @@ function getDeviceIdFromCookie(): string | null {
 export const useSavedItems = (maxItems = 50) => {
   const [savedItems, setSavedItems] = useState<SavedItemUI[]>([]);
   const [orders, setOrders] = useState<Order[]>([]);
+  const [loadingPrices, setLoadingPrices] = useState<Set<string>>(new Set());
 
   const [createAlert] = useCreateAlertMutation();
   const [deleteAlert] = useDeleteAlertMutation();
+  const [updatePriceApi] = useUpdatePriceMutation();
+
+  // Ref to track current savedItems to avoid stale closures
+  const savedItemsRef = useRef<SavedItemUI[]>([]);
 
   useEffect(() => {
-    setSavedItems(loadLocalDb().savedItems);
+    const initialItems = loadLocalDb().savedItems;
+    setSavedItems(initialItems);
+    savedItemsRef.current = initialItems;
 
     if (typeof window !== "undefined") {
       try {
@@ -119,18 +126,12 @@ export const useSavedItems = (maxItems = 50) => {
 
   const alertChange = useCallback(
     async (itemId: string) => {
-      console.log("🚀 alertChange called for itemId:", itemId);
-
       const item = savedItems.find((i) => i.id === itemId);
       if (!item) {
-        console.log("⚠️ Item not found in state");
         return;
       }
 
-      console.log("Current item state:", item);
-
       const newStatus = !item.priceAlertOn;
-      console.log("New toggle status will be:", newStatus);
 
       // Optimistic UI update
       setSavedItems((prev) =>
@@ -138,21 +139,14 @@ export const useSavedItems = (maxItems = 50) => {
           i.id === itemId ? { ...i, priceAlertOn: newStatus } : i
         )
       );
-      console.log("✅ Optimistic UI update done");
 
       try {
         if (newStatus) {
           // TURN ON
-          console.log("Turning ON alert...");
-
           const deviceId = getDeviceIdFromCookie();
           if (!deviceId) {
-            console.warn("Device ID not ready yet, cannot create alert");
             return;
           }
-
-          console.log("Using deviceId:", deviceId);
-          console.log(item.title, item.price.usd);
 
           const res: AlertCreateResponse = await createAlert({
             productId: item.id,
@@ -161,9 +155,7 @@ export const useSavedItems = (maxItems = 50) => {
             currentPriceETB: item.price.usd,
           }).unwrap();
 
-          const alertId = res.data?.data?.alertId; // ✅ fixed nesting
-          console.log("Alert created successfully:", res);
-          console.log("alertId from response:", alertId);
+          const alertId = res.data?.alertId;
 
           if (alertId) {
             setSavedItems((prev) => {
@@ -174,28 +166,18 @@ export const useSavedItems = (maxItems = 50) => {
                 LOCAL_DB_KEY,
                 JSON.stringify({ savedItems: newList })
               );
-              console.log(
-                "LocalStorage updated after creating alert:",
-                newList
-              );
               return newList;
             });
-          } else {
-            console.warn("⚠️ No alertId returned from createAlert API");
           }
         } else {
           // TURN OFF
-          console.log("Turning OFF alert...");
           const alertId = item.alertId;
-          console.log("Current alertId:", alertId);
 
           if (!alertId) {
-            console.log("⚠️ No alertId found, skipping DELETE request");
             return;
           }
 
           const res = await deleteAlert({ id: alertId }).unwrap();
-          console.log("Alert deleted successfully:", res);
 
           setSavedItems((prev) => {
             const newList = prev.map((i) =>
@@ -207,12 +189,10 @@ export const useSavedItems = (maxItems = 50) => {
               LOCAL_DB_KEY,
               JSON.stringify({ savedItems: newList })
             );
-            console.log("LocalStorage updated after deleting alert:", newList);
             return newList;
           });
         }
       } catch (err) {
-        console.error("Alert API failed:", err);
         // revert UI
         setSavedItems((prev) =>
           prev.map((i) =>
@@ -247,75 +227,103 @@ export const useSavedItems = (maxItems = 50) => {
     []
   );
 
-  //update price
-  const [updatePriceApi] = useUpdatePriceMutation();
 
   const refreshPrice = useCallback(
     async (itemId: string) => {
       try {
-        // find the product in savedItems
-        const item = savedItems.find((i) => i.id === itemId);
-        if (!item) {
-          console.warn("Product not found in savedItems");
-          return;
-        }
+        // Set loading state for this item
+        setLoadingPrices(prev => new Set(prev).add(itemId));
 
-        // call backend
-        const res = await updatePriceApi({ productId: item.id }).unwrap();
+        // Call backend to get the EXACT current price
+        const res = await updatePriceApi({ productId: itemId }).unwrap();
+
 
         if (res?.data) {
-          // ✅ only update etb and usd, keep fxTimestamp fresh
-          setSavedItems((prev) => {
-            const newList = prev.map((i) =>
+          // Update using setSavedItems callback to get the most current state
+          setSavedItems((prevItems) => {
+            const item = prevItems.find((i: SavedItemUI) => i.id === itemId);
+            if (!item) {
+              return prevItems; // Item not found, return unchanged
+            }
+
+            // Calculate ETB price if backend returns 0
+            const backendETB = res.data?.updated_price_etb ?? 0;
+            const backendUSD = res.data?.updated_price_usd ?? 0;
+            
+            // If ETB is 0 but USD is valid, calculate ETB using the same exchange rate as homepage
+            let finalETB = backendETB;
+            if (backendETB === 0 && backendUSD > 0) {
+              // Calculate the exchange rate from the old price to match homepage behavior
+              const oldETB = item.price.etb;
+              const oldUSD = item.price.usd;
+              
+              if (oldETB > 0 && oldUSD > 0) {
+                // Use the same exchange rate that was used when the item was first saved
+                const exchangeRate = oldETB / oldUSD;
+                finalETB = backendUSD * exchangeRate;
+              } else {
+                // Fallback to the default rate if we can't calculate from old price
+                const USD_TO_ETB_RATE = 57.5;
+                finalETB = backendUSD * USD_TO_ETB_RATE;
+              }
+            }
+
+
+            // Update with the calculated price (ETB calculated if needed, USD from backend)
+            const newList = prevItems.map((i: SavedItemUI) =>
               i.id === itemId
                 ? {
                     ...i,
                     price: {
-                      ...i.price, // keep old fxTimestamp or other keys
-                      etb: res.data?.updated_price_etb ?? i.price.etb,
-                      usd: res.data?.updated_price_usd ?? i.price.usd,
-                      fxTimestamp: new Date().toISOString(),
+                      etb: finalETB, // Calculated ETB if backend returned 0
+                      usd: backendUSD, // Exact USD from backend
+                      fxTimestamp: new Date().toISOString(), // Current timestamp
                     },
                   }
                 : i
             );
 
-            // log immediately inside updater
-            console.log("📦 savedItems inside refreshPrice updater:", newList);
-
+            // Update localStorage with the new price
             localStorage.setItem(
               LOCAL_DB_KEY,
               JSON.stringify({ savedItems: newList })
             );
-            console.log("📦 savedItems inside refreshPrice updater:", newList);
+
+            // Update ref with the new list
+            savedItemsRef.current = newList;
+            
             return newList;
-          });
-
-          // log after state update (next tick)
-          setTimeout(() => {
-            console.log("📦 savedItems after state update:", savedItems);
-          }, 0);
-
-          console.log("✅ Price updated in localStorage & state:", {
-            etb: res.data.updated_price_etb,
-            usd: res.data.updated_price_usd,
           });
         }
       } catch (err) {
-        console.error("❌ Failed to refresh price:", err);
+        console.error("Failed to refresh price:", err);
+        // You can add user-friendly error handling here if needed
+      } finally {
+        // Remove loading state for this item
+        setLoadingPrices(prev => {
+          const newSet = new Set(prev);
+          newSet.delete(itemId);
+          return newSet;
+        });
       }
     },
-    [savedItems, updatePriceApi]
+    [updatePriceApi]
   );
 
   const clearAll = useCallback(() => {
     setSavedItems([]);
+    savedItemsRef.current = [];
     localStorage.removeItem(LOCAL_DB_KEY);
   }, []);
 
   useEffect(() => {
-    console.log("📝 savedItems changed:", savedItems);
+    savedItemsRef.current = savedItems;
   }, [savedItems]);
+
+  // Helper function to check if an item is currently loading
+  const isPriceLoading = useCallback((itemId: string) => {
+    return loadingPrices.has(itemId);
+  }, [loadingPrices]);
 
   return {
     savedItems,
@@ -327,5 +335,6 @@ export const useSavedItems = (maxItems = 50) => {
     placeOrder,
     refreshPrice,
     clearAll,
+    isPriceLoading,
   };
 };

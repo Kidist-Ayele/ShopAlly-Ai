@@ -1,7 +1,7 @@
 "use client";
 
 import SavedItemsContent from "@/app/components/saved-items/SavedItemsContent";
-import { useSavedItems } from "@/hooks/useSavedItems";
+import { useSavedItemsContext } from "@/app/components/saved-items/SavedItemsContext";
 import { useDarkMode } from "@/app/components/ProfileComponents/DarkModeContext";
 import { useLanguage } from "@/hooks/useLanguage";
 
@@ -9,7 +9,7 @@ export default function SavedItemsPage() {
   const { t } = useLanguage();
   const { isDarkMode } = useDarkMode();
   const { savedItems, removeItem, updateItemPrice, alertChange, placeOrder } =
-    useSavedItems();
+    useSavedItemsContext();
 
   return (
     <div
