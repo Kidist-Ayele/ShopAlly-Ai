@@ -416,6 +416,14 @@ export const useSavedItems = (maxItems = 50) => {
         }
       } catch (err) {
         console.error("❌ Failed to refresh price:", err);
+        
+        // Handle empty error objects
+        if (!err || (typeof err === 'object' && Object.keys(err).length === 0)) {
+          console.error("❌ Empty error object - likely API timeout or network issue");
+          console.error("❌ Item ID:", itemId);
+          return; // Exit early for empty errors
+        }
+        
         console.error("❌ Error details:", {
           message: err instanceof Error ? err.message : 'Unknown error',
           stack: err instanceof Error ? err.stack : undefined,
