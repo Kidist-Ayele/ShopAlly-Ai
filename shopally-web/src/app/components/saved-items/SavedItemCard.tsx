@@ -4,7 +4,7 @@
 import { useDarkMode } from "@/app/components/ProfileComponents/DarkModeContext";
 import ToggleSwitch from "@/app/components/saved-items/ToggleSwitch";
 import { useLanguage } from "@/hooks/useLanguage";
-import { useSavedItemsContext } from "@/app/components/saved-items/SavedItemsContext";
+import { useSavedItems } from "@/hooks/useSavedItems";
 import { formatPriceForEthiopia } from "@/utils/priceUtils";
 import { Trash2 } from "lucide-react";
 import { useState } from "react";
@@ -57,7 +57,7 @@ export default function SavedItemCard({
     return imageUrl;
   };
 
-  const { refreshPrice, isPriceLoading } = useSavedItemsContext();
+  const { refreshPrice, isPriceLoading } = useSavedItems();
 
   return (
     <div

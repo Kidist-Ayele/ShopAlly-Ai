@@ -39,16 +39,33 @@ function getDeviceIdFromCookie(): string | null {
   return match ? match[1] : null;
 }
 
+// Global state to sync all instances
+let globalSavedItems: SavedItemUI[] = [];
+let globalSetters: React.Dispatch<React.SetStateAction<SavedItemUI[]>>[] = [];
+let updateTimeout: NodeJS.Timeout | null = null;
+
 export const useSavedItems = (maxItems = 50) => {
-  const [savedItems, setSavedItems] = useState<SavedItemUI[]>([]);
+  const [savedItems, setSavedItems] = useState<SavedItemUI[]>(globalSavedItems);
   const [orders, setOrders] = useState<Order[]>([]);
   const [loadingPrices, setLoadingPrices] = useState<Set<string>>(new Set());
 
   const [createAlert] = useCreateAlertMutation();
   const [deleteAlert] = useDeleteAlertMutation();
 
+  // Register this setter globally
   useEffect(() => {
-    setSavedItems(loadLocalDb().savedItems);
+    globalSetters.push(setSavedItems);
+    return () => {
+      globalSetters = globalSetters.filter(setter => setter !== setSavedItems);
+    };
+  }, []);
+
+  useEffect(() => {
+    const loadedItems = loadLocalDb().savedItems;
+    setSavedItems(loadedItems);
+    
+    // Update global state with loaded items
+    globalSavedItems = loadedItems;
 
     if (typeof window !== "undefined") {
       try {
@@ -61,8 +78,29 @@ export const useSavedItems = (maxItems = 50) => {
   }, []);
 
   const saveItem = useCallback((item: SavedItem) => {
+    const updateAllInstances = (newList: SavedItemUI[]) => {
+      globalSavedItems = newList;
+      
+      // Clear any pending timeout to avoid conflicts
+      if (updateTimeout) {
+        clearTimeout(updateTimeout);
+      }
+      
+      // Defer state updates to avoid render phase conflicts
+      updateTimeout = setTimeout(() => {
+        globalSetters.forEach(setter => setter(newList));
+        updateTimeout = null;
+      }, 0);
+    };
+
+    // Use global state as the source of truth for the current list
+    const currentList = globalSavedItems.length > 0 ? globalSavedItems : savedItems;
+    
     setSavedItems((prev) => {
-      const prevItem = prev.find((i) => i.id === item.id);
+      // Use the most current state available
+      const baseList = globalSavedItems.length > 0 ? globalSavedItems : prev;
+      
+      const prevItem = baseList.find((i) => i.id === item.id);
       const uiItem: SavedItemUI = {
         ...item,
         rating: item.productRating,
@@ -74,7 +112,7 @@ export const useSavedItems = (maxItems = 50) => {
         placeholderText: "IMG",
       };
 
-      let newList = [...prev.filter((i) => i.id !== item.id), uiItem];
+      let newList = [...baseList.filter((i) => i.id !== item.id), uiItem];
 
       if (newList.length > maxItems) {
         newList = newList.slice(newList.length - maxItems);
@@ -84,17 +122,41 @@ export const useSavedItems = (maxItems = 50) => {
         LOCAL_DB_KEY,
         JSON.stringify({ savedItems: newList })
       );
+      
+      // Update all instances
+      updateAllInstances(newList);
       return newList;
     });
-  }, []);
+  }, [maxItems, savedItems]);
 
   const removeItem = useCallback((itemId: string) => {
+    const updateAllInstances = (newList: SavedItemUI[]) => {
+      globalSavedItems = newList;
+      
+      // Clear any pending timeout to avoid conflicts
+      if (updateTimeout) {
+        clearTimeout(updateTimeout);
+      }
+      
+      // Defer state updates to avoid render phase conflicts
+      updateTimeout = setTimeout(() => {
+        globalSetters.forEach(setter => setter(newList));
+        updateTimeout = null;
+      }, 0);
+    };
+
     setSavedItems((prev) => {
-      const newList = prev.filter((item) => item.id !== itemId);
+      // Use the most current state available
+      const baseList = globalSavedItems.length > 0 ? globalSavedItems : prev;
+      const newList = baseList.filter((item) => item.id !== itemId);
+      
       localStorage.setItem(
         LOCAL_DB_KEY,
         JSON.stringify({ savedItems: newList })
       );
+      
+      // Update all instances
+      updateAllInstances(newList);
       return newList;
     });
   }, []);

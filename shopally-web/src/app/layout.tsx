@@ -2,7 +2,6 @@
 import AuthProvider from "@/providers/AuthProvider";
 import { LanguageProvider } from "@/providers/LanguageProvider";
 import ReduxProvider from "@/providers/ReduxProvider";
-import { SavedItemsProvider } from "@/app/components/saved-items/SavedItemsContext";
 import type { Metadata } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
 import FirebaseSWRegistrar from "./components/FirebaseSWRegistrar";
@@ -44,10 +43,8 @@ export default function RootLayout({
           <DarkModeProvider>
             <AuthProvider>
               <ReduxProvider>
-                <SavedItemsProvider>
-                  <FirebaseSWRegistrar />
-                  <SharedLayout>{children}</SharedLayout>
-                </SavedItemsProvider>
+                <FirebaseSWRegistrar />
+                <SharedLayout>{children}</SharedLayout>
               </ReduxProvider>
             </AuthProvider>
           </DarkModeProvider>

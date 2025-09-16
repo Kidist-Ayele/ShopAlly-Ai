@@ -4,13 +4,13 @@ import { useState, useEffect } from "react";
 import { useDarkMode } from "./DarkModeContext";
 import { useLanguage } from "../../../hooks/useLanguage";
 import { LoadingSpinner } from "../LoadingSpinner";
-import { useSavedItemsContext } from "@/app/components/saved-items/SavedItemsContext";
+import { useSavedItems } from "@/hooks/useSavedItems";
 
 export default function ProfileStats() {
   const [isLoading, setIsLoading] = useState(true);
   const { isDarkMode } = useDarkMode();
   const { t } = useLanguage();
-  const { savedItems, orders } = useSavedItemsContext();
+  const { savedItems, orders } = useSavedItems();
 
   // Simulate loading on component mount
   useEffect(() => {
