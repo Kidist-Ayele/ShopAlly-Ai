@@ -1,7 +1,7 @@
 // Utility functions for price formatting, prioritizing ETB for Ethiopian users
 
 // Current USD to ETB conversion rate (you can update this or fetch from an API)
-const USD_TO_ETB_RATE = 57.5; // Approximate rate, should be updated regularly
+const USD_TO_ETB_RATE = 142.47; // Updated to match backend calculation for consistency
 
 export interface Price {
   etb: number;

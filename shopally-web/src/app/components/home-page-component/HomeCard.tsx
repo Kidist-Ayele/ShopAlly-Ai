@@ -7,6 +7,7 @@ import { FaHeart } from "react-icons/fa";
 import { useSavedItems } from "@/hooks/useSavedItems";
 import { SavedItem } from "@/types/types";
 import { formatPriceForEthiopia } from "@/utils/priceUtils";
+import ProductDetailPopup from "./ProductDetailPopup";
 
 interface CardComponentProps {
   product: Product;
@@ -18,6 +19,7 @@ const CardComponent: React.FC<CardComponentProps> = ({ product }) => {
   const [imageLoaded, setImageLoaded] = useState(false);
   const [imageError, setImageError] = useState(false);
   const [retryCount, setRetryCount] = useState(0);
+  const [isPopupOpen, setIsPopupOpen] = useState(false);
   const { savedItems, saveItem, removeItem, placeOrder } = useSavedItems();
 
   // Check if this product is already saved
@@ -129,12 +131,13 @@ const CardComponent: React.FC<CardComponentProps> = ({ product }) => {
 
   return (
     <div
-      className="rounded-2xl border shadow p-6 space-y-6 w-full max-w-md mx-auto lg:max-w-none transition-colors"
+      className="rounded-2xl border shadow p-6 space-y-6 w-full max-w-md mx-auto lg:max-w-none transition-colors cursor-pointer hover:shadow-lg"
       style={{
         backgroundColor: "var(--color-bg-card)",
         borderColor: "var(--color-border-primary)",
         boxShadow: "var(--color-shadow)",
       }}
+      onClick={() => setIsPopupOpen(true)}
     >
       <div
         className="aspect-square rounded-xl overflow-hidden transition-colors relative"
@@ -253,7 +256,10 @@ const CardComponent: React.FC<CardComponentProps> = ({ product }) => {
                 backgroundColor: "var(--color-bg-tertiary)",
                 color: "var(--color-text-primary)",
               }}
-              onClick={handleHeartClick}
+              onClick={(e) => {
+                e.stopPropagation();
+                handleHeartClick();
+              }}
             >
               <FaHeart
                 className="w-5 h-5 transition-colors"
@@ -267,6 +273,12 @@ const CardComponent: React.FC<CardComponentProps> = ({ product }) => {
           </div>
         </div>
       </div>
+
+      <ProductDetailPopup
+        product={product}
+        isOpen={isPopupOpen}
+        onClose={() => setIsPopupOpen(false)}
+      />
     </div>
   );
 };

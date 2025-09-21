@@ -4,11 +4,12 @@
 import { useDarkMode } from "@/app/components/ProfileComponents/DarkModeContext";
 import ToggleSwitch from "@/app/components/saved-items/ToggleSwitch";
 import { useLanguage } from "@/hooks/useLanguage";
-import { Trash2 } from "lucide-react";
-import { SavedItemUI } from "../../../types/types";
-import { useState } from "react";
+import { useSavedItems } from "@/hooks/useSavedItems";
 import { formatPriceForEthiopia } from "@/utils/priceUtils";
+import { Trash2 } from "lucide-react";
+import { useState } from "react";
 import { FaHeart } from "react-icons/fa";
+import { SavedItemUI } from "../../../types/types";
 
 // Extend SavedItemUI with optional callbacks
 interface SavedItemCardProps extends SavedItemUI {
@@ -27,7 +28,7 @@ export default function SavedItemCard({
   imageUrl,
   rating,
   ratingCount,
-  price,
+  price: initialPrice,
   oldPrice,
   seller,
   checked,
@@ -42,6 +43,11 @@ export default function SavedItemCard({
 }: SavedItemCardProps) {
   const { isDarkMode } = useDarkMode();
   const { t } = useLanguage();
+
+  // Get current price from hook to ensure we have the latest value
+  const { savedItems, refreshPrice, isPriceLoading } = useSavedItems();
+  const currentItem = savedItems.find((item) => item.id === id);
+  const price = currentItem?.price || initialPrice;
 
   // Image loading states
   const [imageLoaded, setImageLoaded] = useState(false);
@@ -207,6 +213,26 @@ export default function SavedItemCard({
             onClick={() => onPlaceOrder?.(id, title, price)}
           >
             {t("Add To Compare")}
+          </button>
+
+          <button
+            className="w-full font-medium py-3 px-6 rounded-xl hover:opacity-80 transition-colors border disabled:opacity-50 disabled:cursor-not-allowed"
+            style={{
+              backgroundColor: "var(--color-bg-tertiary)",
+              color: "var(--color-text-primary)",
+              borderColor: "var(--color-border-primary)",
+            }}
+            onClick={() => refreshPrice(id)}
+            disabled={isPriceLoading(id)}
+          >
+            {isPriceLoading(id) ? (
+              <div className="flex items-center justify-center gap-2">
+                <div className="w-4 h-4 border-2 border-current border-t-transparent rounded-full animate-spin"></div>
+                {t("Updating...")}
+              </div>
+            ) : (
+              t("Update Price")
+            )}
           </button>
 
           <div className="flex gap-3">
