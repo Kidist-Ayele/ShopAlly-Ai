@@ -12,8 +12,8 @@ export default function ProfileContent() {
     "Electronics",
     "Fashion",
   ]);
-  const [currency, setCurrency] = useState("USD");
-  const [region, setRegion] = useState("US");
+  const [currency, setCurrency] = useState("ETB");
+  const [region, setRegion] = useState("ET");
   const [language, setLanguage] = useState("English");
   const [profileImage, setProfileImage] = useState<string | null>(null);
   const [isEditing, setIsEditing] = useState(false);
@@ -601,6 +601,16 @@ export default function ProfileContent() {
                     }`}
                   >
                     <option
+                      value="ETB"
+                      className={
+                        isDarkMode
+                          ? "text-[var(--color-brand-white)] bg-[var(--color-brand-dark)]"
+                          : "text-gray-900 bg-[var(--color-brand-white)]"
+                      }
+                    >
+                      ETB
+                    </option>
+                    <option
                       value="USD"
                       className={
                         isDarkMode
@@ -609,36 +619,6 @@ export default function ProfileContent() {
                       }
                     >
                       USD
-                    </option>
-                    <option
-                      value="EUR"
-                      className={
-                        isDarkMode
-                          ? "text-[var(--color-brand-white)] bg-[var(--color-brand-dark)]"
-                          : "text-gray-900 bg-[var(--color-brand-white)]"
-                      }
-                    >
-                      EUR
-                    </option>
-                    <option
-                      value="GBP"
-                      className={
-                        isDarkMode
-                          ? "text-[var(--color-brand-white)] bg-[var(--color-brand-dark)]"
-                          : "text-gray-900 bg-[var(--color-brand-white)]"
-                      }
-                    >
-                      GBP
-                    </option>
-                    <option
-                      value="CAD"
-                      className={
-                        isDarkMode
-                          ? "text-[var(--color-brand-white)] bg-[var(--color-brand-dark)]"
-                          : "text-gray-900 bg-[var(--color-brand-white)]"
-                      }
-                    >
-                      CAD
                     </option>
                   </select>
                 </div>
@@ -662,6 +642,16 @@ export default function ProfileContent() {
                     }`}
                   >
                     <option
+                      value="ET"
+                      className={
+                        isDarkMode
+                          ? "text-[var(--color-brand-white)] bg-[var(--color-brand-dark)]"
+                          : "text-gray-900 bg-[var(--color-brand-white)]"
+                      }
+                    >
+                      ET
+                    </option>
+                    <option
                       value="US"
                       className={
                         isDarkMode
@@ -670,36 +660,6 @@ export default function ProfileContent() {
                       }
                     >
                       US
-                    </option>
-                    <option
-                      value="CA"
-                      className={
-                        isDarkMode
-                          ? "text-[var(--color-brand-white)] bg-[var(--color-brand-dark)]"
-                          : "text-gray-900 bg-[var(--color-brand-white)]"
-                      }
-                    >
-                      CA
-                    </option>
-                    <option
-                      value="UK"
-                      className={
-                        isDarkMode
-                          ? "text-[var(--color-brand-white)] bg-[var(--color-brand-dark)]"
-                          : "text-gray-900 bg-[var(--color-brand-white)]"
-                      }
-                    >
-                      UK
-                    </option>
-                    <option
-                      value="EU"
-                      className={
-                        isDarkMode
-                          ? "text-[var(--color-brand-white)] bg-[var(--color-brand-dark)]"
-                          : "text-gray-900 bg-[var(--color-brand-white)]"
-                      }
-                    >
-                      EU
                     </option>
                   </select>
                 </div>
@@ -734,34 +694,14 @@ export default function ProfileContent() {
                     English
                   </option>
                   <option
-                    value="Spanish"
+                    value="Amharic"
                     className={
                       isDarkMode
                         ? "text-[var(--color-brand-white)] bg-[var(--color-brand-dark)]"
                         : "text-gray-900 bg-[var(--color-brand-white)]"
                     }
                   >
-                    Spanish
-                  </option>
-                  <option
-                    value="French"
-                    className={
-                      isDarkMode
-                        ? "text-[var(--color-brand-white)] bg-[var(--color-brand-dark)]"
-                        : "text-gray-900 bg-[var(--color-brand-white)]"
-                    }
-                  >
-                    French
-                  </option>
-                  <option
-                    value="German"
-                    className={
-                      isDarkMode
-                        ? "text-[var(--color-brand-white)] bg-[var(--color-brand-dark)]"
-                        : "text-gray-900 bg-[var(--color-brand-white)]"
-                    }
-                  >
-                    German
+                    Amharic
                   </option>
                 </select>
               </div>
