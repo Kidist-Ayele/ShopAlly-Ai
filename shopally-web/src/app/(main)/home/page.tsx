@@ -12,7 +12,12 @@ import { ComparePayload } from "@/types/Compare/Comparison";
 import { ApiErrorResponse, Product } from "@/types/types";
 import { SerializedError } from "@reduxjs/toolkit";
 import { FetchBaseQueryError } from "@reduxjs/toolkit/query";
-import { ArrowRight, Loader2, MessageCircleMore } from "lucide-react";
+import {
+  ArrowRight,
+  Loader2,
+  MessageCircleMore,
+  PlusCircle,
+} from "lucide-react";
 import { useEffect, useState } from "react";
 
 // new //
@@ -22,6 +27,7 @@ import {
 } from "@/lib/redux/api/chatApiSlice";
 import { ChatProduct } from "@/types/chat/chatTypes";
 import { useSession } from "next-auth/react";
+import { useRouter } from "next/navigation";
 // new //
 
 interface ConversationMessage {
@@ -35,6 +41,7 @@ interface ConversationMessage {
 export default function Home() {
   const { t } = useLanguage();
   const { isDarkMode } = useDarkMode();
+  const router = useRouter();
 
   // new //
   const { data: session } = useSession();
@@ -57,22 +64,11 @@ export default function Home() {
   const [expandedMessages, setExpandedMessages] = useState<Set<string>>(
     new Set()
   );
+  const [creating, setCreating] = useState(false);
 
   const [searchProducts, { isLoading }] = useSearchProductsMutation();
   const [compareProducts, { isLoading: isComparing }] =
     useCompareProductsMutation();
-
-  const toggleExpanded = (messageId: string) => {
-    setExpandedMessages((prev) => {
-      const newSet = new Set(prev);
-      if (newSet.has(messageId)) {
-        newSet.delete(messageId);
-      } else {
-        newSet.add(messageId);
-      }
-      return newSet;
-    });
-  };
 
   const handleSend = async () => {
     if (input.trim() === "") return;
@@ -163,6 +159,32 @@ export default function Home() {
 
       setConversation((prev) => [...prev, errorMessage]);
     }
+  };
+
+  const toggleExpanded = (messageId: string) => {
+    setExpandedMessages((prev) => {
+      const newSet = new Set(prev);
+      if (newSet.has(messageId)) {
+        newSet.delete(messageId);
+      } else {
+        newSet.add(messageId);
+      }
+      return newSet;
+    });
+  };
+
+  const handleNewChat = () => {
+    // ✅ Clear both conversation and chatId
+    localStorage.removeItem("conversation");
+    localStorage.removeItem("chatId");
+
+    // Clear current conversation state
+    setConversation([]);
+    setInput("");
+    setExpandedMessages(new Set());
+
+    // Optionally, navigate to home without a chat selected
+    router.push("/home");
   };
 
   // Set client flag and load conversation from localStorage
@@ -306,6 +328,24 @@ export default function Home() {
         </div>
       )}
 
+      {/* New Chat Button - visible when there's a conversation */}
+      {isClient && conversation.length > 0 && (
+        <div className="fixed top-4 right-4 z-50">
+          <button
+            onClick={handleNewChat}
+            disabled={creating}
+            className="flex items-center gap-2 px-2 sm:px-4 py-2 bg-yellow-400 text-black rounded-xl font-medium shadow-md hover:bg-yellow-500 disabled:opacity-70 transition-colors"
+          >
+            {creating ? (
+              <Loader2 className="w-4 h-4 animate-spin" />
+            ) : (
+              <PlusCircle className="w-4 h-4" />
+            )}
+            <span className="hidden sm:inline">{t("New Chat")}</span>
+          </button>
+        </div>
+      )}
+
       {/* Hero Section */}
       <section className="max-w-3xl text-center mt-12 mb-4 px-4">
         <h1
@@ -410,6 +450,46 @@ export default function Home() {
                         };
 
                         setConversation((prev) => [...prev, aiMessage]);
+
+                        // Add chat persistence logic here
+                        (async () => {
+                          try {
+                            let chatId = getStoredChatId();
+
+                            if (!userEmail) {
+                              console.error("❌ No user email in session");
+                              return;
+                            }
+
+                            if (!chatId) {
+                              // No chat exists → create one
+                              const newChat = await createChat({
+                                userEmail,
+                                data: { chat_title: q }, // use the sample question for title
+                              }).unwrap();
+
+                              chatId = newChat.data?.chat_id ?? null;
+                              if (chatId) setStoredChatId(chatId);
+                            }
+
+                            if (chatId) {
+                              // Add the AI response as a message
+                              await addNewMessage({
+                                userEmail,
+                                chatId,
+                                data: {
+                                  user_prompt: q,
+                                  products: products.map((p) => ({
+                                    ...p,
+                                    removeProduct: false,
+                                  })) as ChatProduct[],
+                                },
+                              }).unwrap();
+                            }
+                          } catch (err) {
+                            console.error("❌ Chat persistence failed:", err);
+                          }
+                        })();
                       })
                       .catch((err) => {
                         console.error("❌ Search failed:", err);

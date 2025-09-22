@@ -6,7 +6,7 @@ import ToggleSwitch from "@/app/components/saved-items/ToggleSwitch";
 import { useLanguage } from "@/hooks/useLanguage";
 import { useSavedItems } from "@/hooks/useSavedItems";
 import { formatPriceForEthiopia } from "@/utils/priceUtils";
-import { Trash2 } from "lucide-react";
+import { Trash2, RefreshCw } from "lucide-react";
 import { useState } from "react";
 import { FaHeart } from "react-icons/fa";
 import { SavedItemUI } from "../../../types/types";
@@ -131,14 +131,29 @@ export default function SavedItemCard({
 
       {/* Body */}
       <div className="space-y-4">
-        <h3
-          className="text-lg font-semibold transition-colors cursor-pointer"
-          style={{ color: "var(--color-text-primary)" }}
-          title={title} // full title on hover
-        >
-          {title.split(" ").slice(0, 5).join(" ")}
-          {title.split(" ").length > 5 ? " ..." : ""}
-        </h3>
+        <div className="flex items-start justify-between">
+          <h3
+            className="text-lg font-semibold transition-colors cursor-pointer flex-1"
+            style={{ color: "var(--color-text-primary)" }}
+            title={title} // full title on hover
+          >
+            {title.split(" ").slice(0, 5).join(" ")}
+            {title.split(" ").length > 5 ? " ..." : ""}
+          </h3>
+          {/* Refresh Price Button - Top Right */}
+          <button
+            className="p-1.5 rounded-full bg-gray-100 hover:bg-gray-200 shadow-sm transition-all duration-200 hover:scale-105 disabled:opacity-50 disabled:cursor-not-allowed ml-2 flex-shrink-0"
+            onClick={() => refreshPrice(id)}
+            disabled={isPriceLoading(id)}
+            title={t("Update Price")}
+          >
+            {isPriceLoading(id) ? (
+              <RefreshCw className="w-4 h-4 text-gray-600 animate-spin" />
+            ) : (
+              <RefreshCw className="w-4 h-4 text-gray-600" />
+            )}
+          </button>
+        </div>
 
         <div className="flex items-center justify-between">
           <span
@@ -213,26 +228,6 @@ export default function SavedItemCard({
             onClick={() => onPlaceOrder?.(id, title, price)}
           >
             {t("Add To Compare")}
-          </button>
-
-          <button
-            className="w-full font-medium py-3 px-6 rounded-xl hover:opacity-80 transition-colors border disabled:opacity-50 disabled:cursor-not-allowed"
-            style={{
-              backgroundColor: "var(--color-bg-tertiary)",
-              color: "var(--color-text-primary)",
-              borderColor: "var(--color-border-primary)",
-            }}
-            onClick={() => refreshPrice(id)}
-            disabled={isPriceLoading(id)}
-          >
-            {isPriceLoading(id) ? (
-              <div className="flex items-center justify-center gap-2">
-                <div className="w-4 h-4 border-2 border-current border-t-transparent rounded-full animate-spin"></div>
-                {t("Updating...")}
-              </div>
-            ) : (
-              t("Update Price")
-            )}
           </button>
 
           <div className="flex gap-3">

@@ -218,7 +218,10 @@ const CardComponent: React.FC<CardComponentProps> = ({ product }) => {
 
         <div className="space-y-3">
           <button
-            onClick={added ? removeFromCompare : addToCompare}
+            onClick={(e) => {
+              e.stopPropagation();
+              added ? removeFromCompare() : addToCompare();
+            }}
             className="w-full font-medium py-3 px-6 rounded-xl hover:opacity-80 transition-colors border"
             style={{
               backgroundColor: "var(--color-bg-tertiary)",
@@ -236,7 +239,8 @@ const CardComponent: React.FC<CardComponentProps> = ({ product }) => {
                 backgroundColor: "var(--color-accent-primary)",
                 color: "var(--color-text-button)",
               }}
-              onClick={() => {
+              onClick={(e) => {
+                e.stopPropagation();
                 // Track the order when user clicks "Buy from AliExpress"
                 placeOrder(product.id, product.title, product.price);
                 // Open AliExpress link in new tab
