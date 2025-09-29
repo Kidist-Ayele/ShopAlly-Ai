@@ -6,6 +6,7 @@ import { useDarkMode } from "@/app/components/ProfileComponents/DarkModeContext"
 import { useLanguage } from "@/hooks/useLanguage";
 import {
   useCompareProductsMutation,
+  useImageSearchMutation,
   useSearchProductsMutation,
 } from "@/lib/redux/api/userApiSlice";
 import { ComparePayload } from "@/types/Compare/Comparison";
@@ -19,6 +20,7 @@ import {
   PlusCircle,
 } from "lucide-react";
 import { useEffect, useState } from "react";
+import { CgAdd } from "react-icons/cg";
 
 // new //
 import {
@@ -36,6 +38,7 @@ interface ConversationMessage {
   content: string;
   products?: Product[];
   timestamp: number;
+  imageUrl?: string;
 }
 
 export default function Home() {
@@ -48,6 +51,8 @@ export default function Home() {
   const userEmail: string | null = session?.user?.email ?? null;
   const [createChat] = useCreateChatMutation();
   const [addNewMessage] = useAddNewMessageMutation();
+  const [imageSearch, { isLoading: isImageSearching }] =
+    useImageSearchMutation();
   const getStoredChatId = (): string | null => {
     return localStorage.getItem("chatId");
   };
@@ -157,6 +162,102 @@ export default function Home() {
         timestamp: Date.now(),
       };
 
+      setConversation((prev) => [...prev, errorMessage]);
+    }
+  };
+
+  const handleImageSearch = async (file: File) => {
+    if (!file) return;
+
+    // Convert the file to a Base64 string
+    const fileToDataUrl = (file: File): Promise<string> => {
+      return new Promise((resolve, reject) => {
+        const reader = new FileReader();
+        reader.onload = () => {
+          if (reader.result) resolve(reader.result.toString());
+          else reject("Failed to read file");
+        };
+        reader.onerror = () => reject(reader.error);
+        reader.readAsDataURL(file);
+      });
+    };
+
+    try {
+      // 1️⃣ Convert image to Base64 and save in localStorage
+      const imageDataUrl = await fileToDataUrl(file);
+      const imageKey = `uploadedImage-${Date.now()}`;
+      localStorage.setItem(imageKey, imageDataUrl);
+
+      // 2️⃣ Add user message to conversation (with image)
+      const userMessage: ConversationMessage = {
+        id: `user-${Date.now()}`,
+        type: "user",
+        content: imageKey,
+        timestamp: Date.now(),
+        imageUrl: imageKey, // important: so the user image renders
+      };
+      setConversation((prev) => [...prev, userMessage]);
+
+      // 3️⃣ Call the backend image search
+      const res = await imageSearch({ image: file }).unwrap();
+
+      // 4️⃣ Extract products safely
+      const products =
+        res?.data && typeof res.data !== "string" && "products" in res.data
+          ? res.data.products
+          : [];
+
+      // 5️⃣ Add AI message to conversation including the image URL
+      const aiMessage: ConversationMessage = {
+        id: `ai-${Date.now()}`,
+        type: "ai",
+        content: `Found ${products.length} products for your image`,
+        products,
+        timestamp: Date.now(),
+        imageUrl: imageKey, // same key so the image displays under AI message too
+      };
+
+      setConversation((prev) => [...prev, aiMessage]);
+
+      // 6️⃣ Optional: persist in chat API if needed
+      (async () => {
+        try {
+          let chatId = getStoredChatId();
+          if (!userEmail) return;
+
+          if (!chatId) {
+            const newChat = await createChat({
+              userEmail,
+              data: { chat_title: imageKey },
+            }).unwrap();
+            chatId = newChat.data?.chat_id ?? null;
+            if (chatId) setStoredChatId(chatId);
+          }
+
+          if (chatId) {
+            await addNewMessage({
+              userEmail,
+              chatId,
+              data: {
+                user_prompt: imageKey,
+                products: products.map((p) => ({ ...p, removeProduct: false })),
+              },
+            }).unwrap();
+          }
+        } catch (err) {
+          console.error("❌ Chat persistence failed:", err);
+        }
+      })();
+    } catch (err) {
+      console.error("❌ Image search failed:", err);
+
+      const errorMessage: ConversationMessage = {
+        id: `ai-error-${Date.now()}`,
+        type: "ai",
+        content: "Sorry, we couldn't find products for this image.",
+        products: [],
+        timestamp: Date.now(),
+      };
       setConversation((prev) => [...prev, errorMessage]);
     }
   };
@@ -385,6 +486,25 @@ export default function Home() {
               isDarkMode ? "bg-gray-800 text-white" : "text-black"
             }`}
           />
+          <input
+            type="file"
+            accept="image/*"
+            onChange={(e) => {
+              if (e.target.files?.[0]) handleImageSearch(e.target.files[0]);
+            }}
+            className="hidden"
+            id="imageUpload"
+          />
+          <label
+            htmlFor="imageUpload"
+            className="rounded-xl p-3 mr-1 my-1 flex items-center justify-center transition-colors bg-yellow-400 text-black cursor-pointer"
+          >
+            {isImageSearching ? (
+              <Loader2 size={20} className="animate-spin" />
+            ) : (
+              <CgAdd size={20} />
+            )}
+          </label>
           <button
             onClick={handleSend}
             disabled={isLoading}
@@ -525,9 +645,18 @@ export default function Home() {
             <div key={message.id} className="flex flex-col gap-2">
               {/* User Message */}
               {message.type === "user" && (
-                <div className="flex justify-end w-full">
-                  <div className="max-w-xs sm:max-w-md break-words px-4 py-2 rounded-xl bg-yellow-400 text-black mr-2">
-                    {message.content}
+                <div className="flex justify-end w-full flex-col gap-2">
+                  <div className="max-w-xs sm:max-w-md break-words px-4 py-2 rounded-xl bg-yellow-400 text-black self-end">
+                    {message.content.startsWith("uploadedImage-") &&
+                    localStorage.getItem(message.content) ? (
+                      <img
+                        src={localStorage.getItem(message.content)!}
+                        alt="uploaded"
+                        className="max-w-30 sm:max-w-30 rounded-xl mt-2 self-end"
+                      />
+                    ) : (
+                      message.content
+                    )}
                   </div>
                 </div>
               )}
@@ -543,7 +672,16 @@ export default function Home() {
                           : "bg-gray-100 text-gray-800"
                       }`}
                     >
-                      {message.content}
+                      {message.content.startsWith("uploadedImage-") &&
+                      localStorage.getItem(message.content) ? (
+                        <img
+                          src={localStorage.getItem(message.content)!}
+                          alt="uploaded"
+                          className="max-w-30 sm:max-w-30 rounded-xl mt-2 self-end"
+                        />
+                      ) : (
+                        message.content
+                      )}
                     </div>
                   </div>
 
@@ -622,6 +760,35 @@ export default function Home() {
                 isDarkMode ? "bg-gray-800 text-white" : "text-black"
               }`}
             />
+            <input
+              type="text"
+              placeholder={t("Ask me anything about products you need...")}
+              value={input}
+              onChange={(e) => setInput(e.target.value)}
+              onKeyDown={(e) => e.key === "Enter" && handleSend()}
+              className={`flex-1 px-4 py-3 text-sm sm:text-base focus:outline-none min-w-0 placeholder:text-sm ${
+                isDarkMode ? "bg-gray-800 text-white" : "text-black"
+              }`}
+            />
+            <input
+              type="file"
+              accept="image/*"
+              onChange={(e) => {
+                if (e.target.files?.[0]) handleImageSearch(e.target.files[0]);
+              }}
+              className="hidden"
+              id="imageUpload"
+            />
+            <label
+              htmlFor="imageUpload"
+              className="rounded-xl p-3 mr-1 my-1 flex items-center justify-center transition-colors bg-yellow-400 text-black cursor-pointer"
+            >
+              {isImageSearching ? (
+                <Loader2 size={20} className="animate-spin" />
+              ) : (
+                <CgAdd size={20} />
+              )}
+            </label>
             <button
               onClick={handleSend}
               disabled={isLoading}

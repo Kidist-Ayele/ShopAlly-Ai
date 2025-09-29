@@ -1,5 +1,9 @@
 //src/lib/redux/api/userApiSlice.ts
 import { ComparisonResponse } from "@/types/Compare/Comparison";
+import {
+  ImageSearchRequest,
+  ImageSearchResponse,
+} from "@/types/ImageSearch/ImageSearchResponse";
 import { AlertCreateResponse } from "@/types/SavedItems/AlertCreateResponse";
 import { AlertDeleteResponse } from "@/types/SavedItems/AlertDeleteResponse";
 import {
@@ -78,6 +82,23 @@ export const userApi = createApi({
         }),
       }
     ),
+
+    imageSearch: builder.mutation<ImageSearchResponse, ImageSearchRequest>({
+      query: ({ image, priceMaxETB, minRating, confidenceThreshold }) => {
+        const formData = new FormData();
+        formData.append("image", image);
+        if (priceMaxETB) formData.append("priceMaxETB", String(priceMaxETB));
+        if (minRating) formData.append("minRating", String(minRating));
+        if (confidenceThreshold)
+          formData.append("confidenceThreshold", String(confidenceThreshold));
+
+        return {
+          url: "image/search",
+          method: "POST",
+          body: formData,
+        };
+      },
+    }),
   }),
 });
 
@@ -87,4 +108,5 @@ export const {
   useSearchProductsMutation,
   useCompareProductsMutation,
   useUpdatePriceMutation,
+  useImageSearchMutation,
 } = userApi;
