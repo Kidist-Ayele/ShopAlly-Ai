@@ -2,6 +2,7 @@
 "use client";
 
 import CardComponent from "@/app/components/home-page-component/HomeCard";
+import CompareModal from "@/app/components/ComparisonComponents/CompareModal";
 import { useDarkMode } from "@/app/components/ProfileComponents/DarkModeContext";
 import { useLanguage } from "@/hooks/useLanguage";
 import {
@@ -20,7 +21,7 @@ import {
   PlusCircle,
 } from "lucide-react";
 import { useEffect, useState } from "react";
-import { CgAdd } from "react-icons/cg";
+import Image from "next/image";
 
 // new //
 import {
@@ -65,19 +66,29 @@ export default function Home() {
   const [conversation, setConversation] = useState<ConversationMessage[]>([]);
   const [isClient, setIsClient] = useState(false);
   const [input, setInput] = useState("");
+  const [attachedImage, setAttachedImage] = useState<File | null>(null);
   const [compareList, setCompareList] = useState<Product[]>([]);
   const [expandedMessages, setExpandedMessages] = useState<Set<string>>(
     new Set()
   );
   const [creating, setCreating] = useState(false);
+  const [showCompareModal, setShowCompareModal] = useState(false);
 
   const [searchProducts, { isLoading }] = useSearchProductsMutation();
   const [compareProducts, { isLoading: isComparing }] =
     useCompareProductsMutation();
 
   const handleSend = async () => {
-    if (input.trim() === "") return;
+    if (input.trim() === "" && !attachedImage) return;
 
+    // If there's an attached image, handle image search
+    if (attachedImage) {
+      await handleImageSearch(attachedImage);
+      setAttachedImage(null);
+      return;
+    }
+
+    // Handle text search
     const userMessage: ConversationMessage = {
       id: `user-${Date.now()}`,
       type: "user",
@@ -164,6 +175,10 @@ export default function Home() {
 
       setConversation((prev) => [...prev, errorMessage]);
     }
+  };
+
+  const handleImageAttachment = (file: File) => {
+    setAttachedImage(file);
   };
 
   const handleImageSearch = async (file: File) => {
@@ -346,12 +361,15 @@ export default function Home() {
     return () => window.removeEventListener("storage", updateCompare);
   }, []);
 
-  const handleCompare = async () => {
+  const handleCompare = () => {
     if (compareList.length < 2 || compareList.length > 4) {
       alert("Please select 2 to 4 products for comparison.");
       return;
     }
+    setShowCompareModal(true);
+  };
 
+  const handleCompareSubmit = async (customCriteria?: string) => {
     try {
       console.log("Sending compare list:", compareList);
 
@@ -368,6 +386,7 @@ export default function Home() {
           summaryBullets: p.summaryBullets,
           deeplinkUrl: p.deeplinkUrl,
         })),
+        ...(customCriteria && { customCriteria }), // Add custom criteria if provided
       };
 
       const res = await compareProducts(payload).unwrap();
@@ -382,6 +401,7 @@ export default function Home() {
       // ✅ Clear compare list storage after success
       localStorage.removeItem("compareProduct");
       setCompareList([]);
+      setShowCompareModal(false);
 
       // ✅ Redirect to compare page
       window.location.href = "/comparison";
@@ -477,40 +497,67 @@ export default function Home() {
           }`}
         >
           <input
-            type="text"
-            placeholder={t("Ask me anything about products you need...")}
-            value={input}
-            onChange={(e) => setInput(e.target.value)}
-            onKeyDown={(e) => e.key === "Enter" && handleSend()}
-            className={`flex-1 px-4 py-3 text-sm sm:text-base focus:outline-none min-w-0 placeholder:text-sm ${
-              isDarkMode ? "bg-gray-800 text-white" : "text-black"
-            }`}
-          />
-          <input
             type="file"
             accept="image/*"
             onChange={(e) => {
-              if (e.target.files?.[0]) handleImageSearch(e.target.files[0]);
+              if (e.target.files?.[0]) handleImageAttachment(e.target.files[0]);
             }}
             className="hidden"
             id="imageUpload"
           />
           <label
             htmlFor="imageUpload"
-            className="rounded-xl p-3 mr-1 my-1 flex items-center justify-center transition-colors bg-yellow-400 text-black cursor-pointer"
+            className="rounded-xl p-3 ml-1 my-1 flex items-center justify-center transition-colors bg-yellow-400 text-black cursor-pointer flex-shrink-0"
           >
-            {isImageSearching ? (
-              <Loader2 size={20} className="animate-spin" />
-            ) : (
-              <CgAdd size={20} />
-            )}
+            <Image
+              src="/attachment.png"
+              alt="Upload image"
+              width={24}
+              height={24}
+              className="w-6 h-6"
+            />
           </label>
+          <div className="flex-1 flex items-center">
+            <input
+              type="text"
+              placeholder={
+                attachedImage
+                  ? t("Image attached - press Enter to search")
+                  : t("Ask me anything about products you need...")
+              }
+              value={input}
+              onChange={(e) => setInput(e.target.value)}
+              onKeyDown={(e) => e.key === "Enter" && handleSend()}
+              className={`flex-1 px-4 py-3 text-sm sm:text-base focus:outline-none min-w-0 placeholder:text-sm ${
+                isDarkMode ? "bg-gray-800 text-white" : "text-black"
+              }`}
+            />
+            {attachedImage && (
+              <div className="flex items-center gap-2 px-2">
+                <img
+                  src={URL.createObjectURL(attachedImage)}
+                  alt="Attached"
+                  className="w-8 h-8 rounded object-cover"
+                />
+                <button
+                  onClick={() => setAttachedImage(null)}
+                  className="text-gray-500 hover:text-gray-700 text-sm"
+                >
+                  ×
+                </button>
+              </div>
+            )}
+          </div>
           <button
             onClick={handleSend}
-            disabled={isLoading}
-            className="rounded-xl p-3 mr-1 my-1 flex items-center justify-center transition-colors bg-yellow-400 text-black"
+            disabled={
+              isLoading ||
+              isImageSearching ||
+              (input.trim() === "" && !attachedImage)
+            }
+            className="rounded-xl p-3 mr-1 my-1 flex items-center justify-center transition-colors bg-yellow-400 text-black flex-shrink-0 disabled:opacity-50"
           >
-            {isLoading ? (
+            {isLoading || isImageSearching ? (
               <Loader2 size={20} className="animate-spin" />
             ) : (
               <ArrowRight size={20} />
@@ -751,40 +798,68 @@ export default function Home() {
             }`}
           >
             <input
-              type="text"
-              placeholder={t("Ask me anything about products you need...")}
-              value={input}
-              onChange={(e) => setInput(e.target.value)}
-              onKeyDown={(e) => e.key === "Enter" && handleSend()}
-              className={`flex-1 px-3 sm:px-4 py-2.5 sm:py-3 text-sm sm:text-base focus:outline-none min-w-0 ${
-                isDarkMode ? "bg-gray-800 text-white" : "text-black"
-              }`}
-            />
-            <input
               type="file"
               accept="image/*"
               onChange={(e) => {
-                if (e.target.files?.[0]) handleImageSearch(e.target.files[0]);
+                if (e.target.files?.[0])
+                  handleImageAttachment(e.target.files[0]);
               }}
               className="hidden"
               id="imageUpload"
             />
             <label
               htmlFor="imageUpload"
-              className="rounded-xl p-3 mr-1 my-1 flex items-center justify-center transition-colors bg-yellow-400 text-black cursor-pointer"
+              className="rounded-xl p-2.5 sm:p-3 ml-1 my-1 flex items-center justify-center transition-colors bg-yellow-400 text-black cursor-pointer flex-shrink-0"
             >
-              {isImageSearching ? (
-                <Loader2 size={20} className="animate-spin" />
-              ) : (
-                <CgAdd size={20} />
-              )}
+              <Image
+                src="/attachment.png"
+                alt="Upload image"
+                width={22}
+                height={22}
+                className="w-5.5 h-5.5 sm:w-6 sm:h-6"
+              />
             </label>
+            <div className="flex-1 flex items-center">
+              <input
+                type="text"
+                placeholder={
+                  attachedImage
+                    ? t("Image attached - press Enter to search")
+                    : t("Ask me anything about products you need...")
+                }
+                value={input}
+                onChange={(e) => setInput(e.target.value)}
+                onKeyDown={(e) => e.key === "Enter" && handleSend()}
+                className={`flex-1 px-3 sm:px-4 py-2.5 sm:py-3 text-sm sm:text-base focus:outline-none min-w-0 ${
+                  isDarkMode ? "bg-gray-800 text-white" : "text-black"
+                }`}
+              />
+              {attachedImage && (
+                <div className="flex items-center gap-2 px-2">
+                  <img
+                    src={URL.createObjectURL(attachedImage)}
+                    alt="Attached"
+                    className="w-6 h-6 sm:w-8 sm:h-8 rounded object-cover"
+                  />
+                  <button
+                    onClick={() => setAttachedImage(null)}
+                    className="text-gray-500 hover:text-gray-700 text-sm"
+                  >
+                    ×
+                  </button>
+                </div>
+              )}
+            </div>
             <button
               onClick={handleSend}
-              disabled={isLoading}
-              className="bg-yellow-400 rounded-xl p-2.5 sm:p-3 mr-1 my-1 flex items-center justify-center flex-shrink-0"
+              disabled={
+                isLoading ||
+                isImageSearching ||
+                (input.trim() === "" && !attachedImage)
+              }
+              className="bg-yellow-400 rounded-xl p-2.5 sm:p-3 mr-1 my-1 flex items-center justify-center flex-shrink-0 disabled:opacity-50"
             >
-              {isLoading ? (
+              {isLoading || isImageSearching ? (
                 <Loader2 size={18} className="animate-spin text-black" />
               ) : (
                 <ArrowRight size={18} className="sm:w-5 sm:h-5 text-black" />
@@ -793,6 +868,14 @@ export default function Home() {
           </div>
         </div>
       </section>
+
+      {/* Compare Modal */}
+      <CompareModal
+        isOpen={showCompareModal}
+        onClose={() => setShowCompareModal(false)}
+        onSubmit={handleCompareSubmit}
+        isLoading={isComparing}
+      />
     </main>
   );
 }

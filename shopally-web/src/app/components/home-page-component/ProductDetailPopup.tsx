@@ -76,7 +76,7 @@ const ProductDetailPopup: React.FC<ProductDetailPopupProps> = ({
 
   return (
     <div
-      className="fixed inset-0 bg-gray-700 bg-opacity-50 flex items-center justify-center z-[9999] p-4"
+      className="fixed inset-0 bg-black/50 flex items-center justify-center z-[9999] p-4"
       onClick={(e) => {
         // Close popup when clicking on backdrop
         if (e.target === e.currentTarget) {
