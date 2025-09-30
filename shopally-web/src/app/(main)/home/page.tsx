@@ -761,16 +761,6 @@ export default function Home() {
               }`}
             />
             <input
-              type="text"
-              placeholder={t("Ask me anything about products you need...")}
-              value={input}
-              onChange={(e) => setInput(e.target.value)}
-              onKeyDown={(e) => e.key === "Enter" && handleSend()}
-              className={`flex-1 px-4 py-3 text-sm sm:text-base focus:outline-none min-w-0 placeholder:text-sm ${
-                isDarkMode ? "bg-gray-800 text-white" : "text-black"
-              }`}
-            />
-            <input
               type="file"
               accept="image/*"
               onChange={(e) => {
