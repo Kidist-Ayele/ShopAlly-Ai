@@ -906,7 +906,7 @@ export default function Home() {
                 className="w-5.5 h-5.5 sm:w-6 sm:h-6"
               />
             </label>
-            <div className="flex-1 flex items-center">
+            <div className="flex-1 flex items-center min-w-0">
               <input
                 type="text"
                 placeholder={
@@ -922,15 +922,15 @@ export default function Home() {
                 }`}
               />
               {attachedImage && (
-                <div className="flex items-center gap-2 px-2">
+                <div className="flex items-center gap-1 px-1 flex-shrink-0">
                   <img
                     src={URL.createObjectURL(attachedImage)}
                     alt="Attached"
-                    className="w-6 h-6 sm:w-8 sm:h-8 rounded object-cover"
+                    className="w-10 h-10 sm:w-12 sm:h-12 rounded object-cover"
                   />
                   <button
                     onClick={() => setAttachedImage(null)}
-                    className="text-gray-500 hover:text-gray-700 text-sm"
+                    className="text-gray-500 hover:text-gray-700 text-xs flex-shrink-0 w-5 h-5 flex items-center justify-center"
                   >
                     ×
                   </button>
@@ -947,9 +947,15 @@ export default function Home() {
               className="bg-yellow-400 rounded-xl p-2.5 sm:p-3 mr-1 my-1 flex items-center justify-center flex-shrink-0 disabled:opacity-50"
             >
               {isLoading || isImageSearching ? (
-                <Loader2 size={18} className="animate-spin text-black" />
+                <Loader2
+                  size={16}
+                  className="animate-spin text-black sm:w-[18px] sm:h-[18px]"
+                />
               ) : (
-                <ArrowRight size={18} className="sm:w-5 sm:h-5 text-black" />
+                <ArrowRight
+                  size={16}
+                  className="w-4 h-4 sm:w-5 sm:h-5 text-black"
+                />
               )}
             </button>
           </div>
