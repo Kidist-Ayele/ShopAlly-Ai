@@ -46,7 +46,7 @@ export const AIRecommendation: React.FC<AIRecommendationProps> = ({
 
   return (
     <div
-      className="rounded-2xl border shadow-lg p-6 space-y-6 transition-colors"
+      className="rounded-xl sm:rounded-2xl border shadow-lg p-3 sm:p-4 lg:p-6 space-y-4 sm:space-y-6 transition-colors"
       style={{
         backgroundColor: "var(--color-bg-card)",
         borderColor: "var(--color-border-primary)",
@@ -61,7 +61,7 @@ export const AIRecommendation: React.FC<AIRecommendationProps> = ({
           />
         </div>
         <h2
-          className="text-xl font-semibold transition-colors"
+          className="text-lg sm:text-xl font-semibold transition-colors"
           style={{ color: "var(--color-text-primary)" }}
         >
           {t("AI Recommendation")}
@@ -69,7 +69,7 @@ export const AIRecommendation: React.FC<AIRecommendationProps> = ({
       </div>
 
       <div
-        className="rounded-xl p-6 transition-colors"
+        className="rounded-xl p-3 sm:p-4 lg:p-6 transition-colors"
         style={{
           backgroundColor: "var(--color-bg-tertiary)",
         }}
@@ -139,9 +139,9 @@ export const AIRecommendation: React.FC<AIRecommendationProps> = ({
           </div>
         </div>
 
-        <div className="flex gap-3">
+        <div className="flex gap-2 sm:gap-3">
           <button
-            className="px-4 py-2 rounded-lg font-medium hover:opacity-80 transition-colors"
+            className="px-3 sm:px-4 py-2 sm:py-2 rounded-lg font-medium hover:opacity-80 transition-colors text-xs sm:text-sm"
             style={{
               backgroundColor: "var(--color-accent-primary)",
               color: "var(--color-text-button)",

@@ -126,7 +126,7 @@ export default function ComparePage() {
 
   return (
     <div
-      className="min-h-screen flex flex-col gap-4 p-4 lg:p-8 transition-colors"
+      className="min-h-screen flex flex-col gap-4 p-2 sm:p-4 lg:p-8 transition-colors"
       style={{
         backgroundColor: "var(--color-bg-primary)",
         color: "var(--color-text-primary)",
@@ -146,7 +146,7 @@ export default function ComparePage() {
       </p>
 
       {/* Product cards */}
-      <div className="grid gap-4 sm:gap-6 lg:gap-8 md:grid-cols-2 lg:grid-cols-3 mb-8">
+      <div className="grid gap-3 sm:gap-4 lg:gap-6 grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 mb-6 sm:mb-8">
         {comparison.map((item, index) => (
           <ProductCard
             key={item.product.id || index}
