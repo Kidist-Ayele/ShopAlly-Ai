@@ -73,5 +73,5 @@ export interface ComparePayload {
       | "deeplinkUrl"
     >
   >;
-  customCriteria?: string;
+  q?: string; // User preference query
 }

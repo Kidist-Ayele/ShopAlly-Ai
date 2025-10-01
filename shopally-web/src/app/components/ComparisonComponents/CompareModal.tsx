@@ -28,6 +28,7 @@ export default function CompareModal({
 
   const handleSubmit = (useCustomCriteria: boolean) => {
     const criteria = useCustomCriteria ? compareInput.trim() : undefined;
+    console.log("🎯 Modal:", useCustomCriteria ? `"${criteria}"` : "skip");
     onSubmit(criteria);
     setCompareInput("");
   };

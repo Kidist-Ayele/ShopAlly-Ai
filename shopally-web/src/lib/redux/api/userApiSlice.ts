@@ -1,5 +1,5 @@
 //src/lib/redux/api/userApiSlice.ts
-import { ComparisonResponse } from "@/types/Compare/Comparison";
+import { ComparisonResponse, ComparePayload } from "@/types/Compare/Comparison";
 import {
   ImageSearchRequest,
   ImageSearchResponse,
@@ -65,13 +65,20 @@ export const userApi = createApi({
 
     compareProducts: builder.mutation<
       ComparisonResponse,
-      { products: Product[] }
+      ComparePayload
     >({
-      query: (data) => ({
-        url: "compare",
-        method: "POST",
-        body: data,
-      }),
+      query: ({ q, products }) => {
+        const params = new URLSearchParams();
+        if (q) params.append("q", q);
+        
+        const url = params.toString() ? `compare?${params.toString()}` : "compare";
+        
+        return {
+          url,
+          method: "POST",
+          body: { products },
+        };
+      },
     }),
 
     updatePrice: builder.mutation<UpdateProductResponse, { productId: string }>(

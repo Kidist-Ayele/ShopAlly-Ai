@@ -2,7 +2,10 @@
 // import { useDarkMode } from "@/app/components/ProfileComponents/DarkModeContext";
 import { useLanguage } from "@/hooks/useLanguage";
 import { useSavedItems } from "@/hooks/useSavedItems";
-import type { ComparisonItem } from "@/types/Compare/Comparison";
+import type {
+  ComparisonItem,
+  OverallComparison,
+} from "@/types/Compare/Comparison";
 import { Check, X } from "lucide-react";
 import { BsLightningChargeFill } from "react-icons/bs";
 import { FaCircleCheck } from "react-icons/fa6";
@@ -12,10 +15,12 @@ import { formatPriceForEthiopia } from "@/utils/priceUtils";
 
 type AIRecommendationProps = {
   comparison: ComparisonItem[];
+  overallComparison: OverallComparison | null;
 };
 
 export const AIRecommendation: React.FC<AIRecommendationProps> = ({
   comparison,
+  overallComparison,
 }) => {
   // const { isDarkMode } = useDarkMode();
   const { t } = useLanguage();
@@ -100,9 +105,10 @@ export const AIRecommendation: React.FC<AIRecommendationProps> = ({
               className="text-sm mb-4 transition-colors"
               style={{ color: "var(--color-text-secondary)" }}
             >
-              {t(
-                "Based on price, ratings, and versatility, this product offers a strong balance of value and everyday utility"
-              )}
+              {overallComparison?.summary ||
+                t(
+                  "Based on price, ratings, and versatility, this product offers a strong balance of value and everyday utility"
+                )}
             </p>
             <div className="flex items-center gap-4">
               <span
@@ -191,7 +197,7 @@ export const AIRecommendation: React.FC<AIRecommendationProps> = ({
                   {t("Pros")}
                 </span>
               </div>
-              {analysis.pros.map((pro, i) => (
+              {analysis.pros?.map((pro, i) => (
                 <div key={i} className="flex items-center gap-2 ml-6">
                   <Check
                     className="w-3 h-3 transition-colors"
@@ -220,7 +226,7 @@ export const AIRecommendation: React.FC<AIRecommendationProps> = ({
                   {t("Cons")}
                 </span>
               </div>
-              {analysis.cons.map((con, i) => (
+              {analysis.cons?.map((con, i) => (
                 <div key={i} className="flex items-center gap-2 ml-6">
                   <X
                     className="w-3 h-3"

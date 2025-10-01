@@ -266,10 +266,36 @@ export default function Home() {
     } catch (err) {
       console.error("❌ Image search failed:", err);
 
+      let errorContent = "Sorry, we couldn't find products for this image.";
+
+      // Check for rate limit error
+      if (typeof err === "object" && err !== null) {
+        const error = err as any;
+
+        // Check if it's a rate limit error (429 status)
+        if (
+          error?.status === 429 ||
+          error?.data?.error?.code === "RATE_LIMIT_EXCEEDED"
+        ) {
+          errorContent =
+            "⏳ You've reached the image search limit. Please try again in a few minutes or use text search instead.";
+        }
+        // Check for other specific errors
+        else if (
+          error?.status === 413 ||
+          error?.data?.error?.message?.includes("too large")
+        ) {
+          errorContent =
+            "📸 Image file is too large. Please upload a smaller image (max 5MB).";
+        } else if (error?.data?.error?.message) {
+          errorContent = `Error: ${error.data.error.message}`;
+        }
+      }
+
       const errorMessage: ConversationMessage = {
         id: `ai-error-${Date.now()}`,
         type: "ai",
-        content: "Sorry, we couldn't find products for this image.",
+        content: errorContent,
         products: [],
         timestamp: Date.now(),
       };
@@ -386,17 +412,32 @@ export default function Home() {
           summaryBullets: p.summaryBullets,
           deeplinkUrl: p.deeplinkUrl,
         })),
-        ...(customCriteria && { customCriteria }), // Add custom criteria if provided
+        ...(customCriteria && { q: customCriteria }), // Add user preference query if provided
       };
 
-      const res = await compareProducts(payload).unwrap();
-      console.log("Comparison result:", res);
-
-      // ✅ Save the response to localStorage
-      localStorage.setItem(
-        "comparisonResults",
-        JSON.stringify(res.data.products) // full ComparisonItem objects
+      console.log(
+        "🔍 Compare:",
+        customCriteria ? `?q=${customCriteria}` : "default"
       );
+
+      console.log("🚀 Calling API...");
+      const res = await compareProducts(payload).unwrap();
+      console.log("✅ API returned:", typeof res, res);
+      console.log("📋 res.data:", res?.data);
+      console.log("📋 Products count:", res?.data?.products?.length || 0);
+      console.log("📋 Overall exists:", !!res?.data?.overallComparison);
+
+      // ✅ Save the response to localStorage (including overallComparison)
+      if (res?.data) {
+        localStorage.setItem(
+          "comparisonResults",
+          JSON.stringify(res.data.products)
+        );
+        localStorage.setItem(
+          "overallComparison",
+          JSON.stringify(res.data.overallComparison)
+        );
+      }
 
       // ✅ Clear compare list storage after success
       localStorage.removeItem("compareProduct");
@@ -406,7 +447,9 @@ export default function Home() {
       // ✅ Redirect to compare page
       window.location.href = "/comparison";
     } catch (err: unknown) {
-      console.error("❌ Compare API failed:", err);
+      console.error("❌ Compare API failed:");
+      console.error("   Error type:", typeof err);
+      console.error("   Error:", err);
 
       if (typeof err === "object" && err !== null) {
         const e = err as FetchBaseQueryError | SerializedError;
