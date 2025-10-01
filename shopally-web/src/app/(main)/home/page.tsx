@@ -71,7 +71,7 @@ export default function Home() {
   const [expandedMessages, setExpandedMessages] = useState<Set<string>>(
     new Set()
   );
-  const [creating, setCreating] = useState(false);
+  const [creating] = useState(false);
   const [showCompareModal, setShowCompareModal] = useState(false);
 
   const [searchProducts, { isLoading }] = useSearchProductsMutation();
@@ -270,25 +270,41 @@ export default function Home() {
 
       // Check for rate limit error
       if (typeof err === "object" && err !== null) {
-        const error = err as any;
+        const error = err as FetchBaseQueryError | SerializedError;
 
-        // Check if it's a rate limit error (429 status)
-        if (
-          error?.status === 429 ||
-          error?.data?.error?.code === "RATE_LIMIT_EXCEEDED"
-        ) {
-          errorContent =
-            "⏳ You've reached the image search limit. Please try again in a few minutes or use text search instead.";
+        if ("status" in error) {
+          // Check if it's a rate limit error (429 status)
+          if (error.status === 429) {
+            errorContent =
+              "⏳ You've reached the image search limit. Please try again in a few minutes or use text search instead.";
+          }
+          // Check for file too large error
+          else if (error.status === 413) {
+            errorContent =
+              "📸 Image file is too large. Please upload a smaller image (max 5MB).";
+          }
         }
-        // Check for other specific errors
-        else if (
-          error?.status === 413 ||
-          error?.data?.error?.message?.includes("too large")
-        ) {
-          errorContent =
-            "📸 Image file is too large. Please upload a smaller image (max 5MB).";
-        } else if (error?.data?.error?.message) {
-          errorContent = `Error: ${error.data.error.message}`;
+
+        // Check for error message in data
+        if ("data" in error && error.data) {
+          const data = error.data as ApiErrorResponse | undefined;
+          const message = data?.error?.message || "";
+
+          if (
+            message.includes("rate limit") ||
+            message.includes("RATE_LIMIT")
+          ) {
+            errorContent =
+              "⏳ You've reached the image search limit. Please try again in a few minutes or use text search instead.";
+          } else if (
+            message.includes("too large") ||
+            message.includes("file size")
+          ) {
+            errorContent =
+              "📸 Image file is too large. Please upload a smaller image (max 5MB).";
+          } else if (message) {
+            errorContent = message;
+          }
         }
       }
 
