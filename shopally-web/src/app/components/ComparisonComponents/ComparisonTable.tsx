@@ -32,7 +32,7 @@ export const ComparisonTable: FC<ComparisonTableProps> = ({ comparison }) => {
           {t("Detailed Comparison")}
         </h1>
       </div>
-      <table className="w-full text-left border-collapse min-w-[400px] sm:min-w-[600px]">
+      <table className="w-full text-left border-collapse min-w-[300px] sm:min-w-[500px]">
         <thead>
           <tr style={{ backgroundColor: "var(--color-bg-secondary)" }}>
             <th
@@ -44,10 +44,11 @@ export const ComparisonTable: FC<ComparisonTableProps> = ({ comparison }) => {
             {comparison.map((c) => (
               <th
                 key={c.product.id}
-                className="px-2 sm:px-3 lg:px-4 py-2 sm:py-3 text-xs sm:text-sm font-semibold text-center transition-colors"
+                className="px-2 sm:px-3 lg:px-4 py-2 sm:py-3 text-xs sm:text-sm font-semibold text-center transition-colors max-w-[120px] sm:max-w-[200px]"
                 style={{ color: "var(--color-text-primary)" }}
+                title={c.product.title}
               >
-                {c.product.title}
+                <div className="truncate">{c.product.title}</div>
               </th>
             ))}
           </tr>
@@ -67,10 +68,10 @@ export const ComparisonTable: FC<ComparisonTableProps> = ({ comparison }) => {
             {comparison.map((c) => (
               <td
                 key={c.product.id}
-                className="px-2 sm:px-3 lg:px-4 py-2 sm:py-3 text-center text-xs sm:text-sm transition-colors"
+                className="px-2 sm:px-3 lg:px-4 py-2 sm:py-3 text-center text-xs sm:text-sm transition-colors max-w-[120px] sm:max-w-[200px]"
                 style={{ color: "var(--color-text-secondary)" }}
               >
-                ${c.product.price.usd}
+                <div className="truncate">${c.product.price.usd}</div>
               </td>
             ))}
           </tr>
@@ -86,15 +87,17 @@ export const ComparisonTable: FC<ComparisonTableProps> = ({ comparison }) => {
             {comparison.map((c) => (
               <td
                 key={c.product.id}
-                className="px-2 sm:px-3 lg:px-4 py-2 sm:py-3 text-center text-xs sm:text-sm transition-colors"
+                className="px-2 sm:px-3 lg:px-4 py-2 sm:py-3 text-center text-xs sm:text-sm transition-colors max-w-[120px] sm:max-w-[200px]"
                 style={{ color: "var(--color-text-secondary)" }}
               >
-                <div className="flex items-center justify-center gap-1">
-                  {c.product.productRating}
-                  <IoIosStar
-                    className="w-3 h-3 sm:w-4 sm:h-4 transition-colors"
-                    style={{ fill: "var(--color-text-primary)" }}
-                  />
+                <div className="truncate">
+                  <div className="flex items-center justify-center gap-1">
+                    {c.product.productRating}
+                    <IoIosStar
+                      className="w-3 h-3 sm:w-4 sm:h-4 transition-colors"
+                      style={{ fill: "var(--color-text-primary)" }}
+                    />
+                  </div>
                 </div>
               </td>
             ))}
@@ -111,10 +114,10 @@ export const ComparisonTable: FC<ComparisonTableProps> = ({ comparison }) => {
             {comparison.map((c) => (
               <td
                 key={c.product.id}
-                className="px-2 sm:px-3 lg:px-4 py-2 sm:py-3 text-center text-xs sm:text-sm transition-colors"
+                className="px-2 sm:px-3 lg:px-4 py-2 sm:py-3 text-center text-xs sm:text-sm transition-colors max-w-[120px] sm:max-w-[200px]"
                 style={{ color: "var(--color-text-secondary)" }}
               >
-                {c.product.deliveryEstimate}
+                <div className="truncate">{c.product.deliveryEstimate}</div>
               </td>
             ))}
           </tr>
@@ -130,10 +133,12 @@ export const ComparisonTable: FC<ComparisonTableProps> = ({ comparison }) => {
             {comparison.map((c) => (
               <td
                 key={c.product.id}
-                className="px-2 sm:px-3 lg:px-4 py-2 sm:py-3 text-center text-xs sm:text-sm transition-colors"
+                className="px-2 sm:px-3 lg:px-4 py-2 sm:py-3 text-center text-xs sm:text-sm transition-colors max-w-[120px] sm:max-w-[200px]"
                 style={{ color: "var(--color-text-secondary)" }}
               >
-                {c.product.numberSold} {t("sold")}
+                <div className="truncate">
+                  {c.product.numberSold} {t("sold")}
+                </div>
               </td>
             ))}
           </tr>
