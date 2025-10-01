@@ -55,7 +55,7 @@ export const ProductCard: React.FC<{ product: Product }> = ({ product }) => {
 
   return (
     <div
-      className="rounded-2xl border shadow p-6 space-y-6 w-full max-w-md mx-auto lg:max-w-none transition-colors"
+      className="rounded-xl sm:rounded-2xl border shadow p-3 sm:p-4 lg:p-6 space-y-4 sm:space-y-6 w-full max-w-md mx-auto lg:max-w-none transition-colors"
       style={{
         backgroundColor: "var(--color-bg-card)",
         borderColor: "var(--color-border-primary)",
@@ -113,7 +113,7 @@ export const ProductCard: React.FC<{ product: Product }> = ({ product }) => {
       </div>
       <div className="space-y-4">
         <h3
-          className="text-lg font-semibold transition-colors line-clamp-2"
+          className="text-sm sm:text-lg font-semibold transition-colors line-clamp-2"
           style={{ color: "var(--color-text-primary)" }}
         >
           {product.title}
@@ -160,9 +160,9 @@ export const ProductCard: React.FC<{ product: Product }> = ({ product }) => {
             </div>
           ))}
         </div>
-        <div className="flex gap-3">
+        <div className="flex gap-2 sm:gap-3">
           <button
-            className="flex-1 font-medium py-3 px-6 rounded-xl hover:opacity-80 transition-colors"
+            className="flex-1 font-medium py-2 sm:py-3 px-3 sm:px-6 rounded-lg sm:rounded-xl hover:opacity-80 transition-colors text-xs sm:text-sm"
             style={{
               backgroundColor: "var(--color-accent-primary)",
               color: "var(--color-text-button)",
@@ -177,7 +177,7 @@ export const ProductCard: React.FC<{ product: Product }> = ({ product }) => {
             {t("Buy from AliExpress")}
           </button>
           <button
-            className="p-3 rounded-xl hover:opacity-80 transition-colors"
+            className="p-2 sm:p-3 rounded-lg sm:rounded-xl hover:opacity-80 transition-colors"
             style={{
               backgroundColor: "var(--color-bg-tertiary)",
               color: "var(--color-text-primary)",
@@ -185,7 +185,7 @@ export const ProductCard: React.FC<{ product: Product }> = ({ product }) => {
             onClick={handleHeartClick}
           >
             <FaHeart
-              className="w-5 h-5 transition-colors"
+              className="w-4 h-4 sm:w-5 sm:h-5 transition-colors"
               style={{
                 color: isSaved
                   ? "var(--color-accent-primary)"

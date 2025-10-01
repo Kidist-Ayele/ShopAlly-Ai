@@ -165,10 +165,25 @@ export default function Home() {
     } catch (err) {
       console.error("❌ Search failed:", err);
 
+      let errorContent = `Sorry, I couldn't find products for "${userInput}". Please try again.`;
+
+      // Handle connection errors
+      if (typeof err === "object" && err !== null) {
+        const error = err as FetchBaseQueryError | SerializedError;
+
+        if (
+          "status" in error &&
+          (error.status === "FETCH_ERROR" || error.status === "PARSING_ERROR")
+        ) {
+          errorContent =
+            "🌐 Connection error. Please check your internet connection and try again.";
+        }
+      }
+
       const errorMessage: ConversationMessage = {
         id: `ai-error-${Date.now()}`,
         type: "ai",
-        content: `Sorry, I couldn't find products for "${userInput}". Please try again.`,
+        content: errorContent,
         products: [],
         timestamp: Date.now(),
       };
@@ -304,6 +319,18 @@ export default function Home() {
               "📸 Image file is too large. Please upload a smaller image (max 5MB).";
           } else if (message) {
             errorContent = message;
+          }
+        }
+
+        // Check for connection reset errors
+        if ("error" in error && typeof error.error === "string") {
+          if (
+            error.error.includes("connection reset by peer") ||
+            error.error.includes("write tcp") ||
+            error.error.includes("ECONNRESET")
+          ) {
+            errorContent =
+              "🌐 Connection lost. Please check your internet connection and try again.";
           }
         }
       }
@@ -596,7 +623,7 @@ export default function Home() {
                 <img
                   src={URL.createObjectURL(attachedImage)}
                   alt="Attached"
-                  className="w-8 h-8 rounded object-cover"
+                  className="w-10 h-10 rounded object-cover"
                 />
                 <button
                   onClick={() => setAttachedImage(null)}
@@ -720,10 +747,11 @@ export default function Home() {
                       .catch((err) => {
                         console.error("❌ Search failed:", err);
 
+                        const errorContent = `Sorry, I couldn't find products for "${q}". Please try again.`;
                         const errorMessage: ConversationMessage = {
                           id: `ai-error-${Date.now()}`,
                           type: "ai",
-                          content: `Sorry, I couldn't find products for "${q}". Please try again.`,
+                          content: errorContent,
                           products: [],
                           timestamp: Date.now(),
                         };
