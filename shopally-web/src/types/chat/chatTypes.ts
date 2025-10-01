@@ -33,23 +33,23 @@ export interface ChatProduct {
   id: string;
   title: string;
   imageUrl: string;
-  aiMatchPercentage: number;
+  aiMatchPercentage?: number;
   price: {
-    etb: number;
-    usd: number;
+    etb?: number;
+    usd?: number;
     fxTimestamp: string;
   };
-  productRating: number;
-  sellerScore: number;
-  deliveryEstimate: string;
+  productRating?: number;
+  sellerScore?: number;
+  deliveryEstimate?: string;
   description?: string; // ✅ optional
   productSmallImageUrls?: string[]; // ✅ optional
   numberSold?: number; // ✅ optional
-  summaryBullets: string[];
+  summaryBullets?: string[];
   deeplinkUrl: string;
   taxRate?: number; // ✅ optional
   discount?: number; // ✅ optional
-  removeProduct: boolean;
+  removeProduct?: boolean;
 }
 
 export interface ChatMessage {
