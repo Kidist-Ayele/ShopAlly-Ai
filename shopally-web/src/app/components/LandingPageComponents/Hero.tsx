@@ -1,77 +1,38 @@
 "use client";
 
-import { Search } from "lucide-react";
+import Image from "next/image";
+import { motion, Variants } from "framer-motion";
 import { useDarkMode } from "@/app/components/ProfileComponents/DarkModeContext";
 import { useLanguage } from "@/hooks/useLanguage";
+
+const fadeInUp: Variants = {
+  hidden: { opacity: 0, y: 24 },
+  visible: { opacity: 1, y: 0, transition: { duration: 0.6 } },
+};
 
 export default function Hero() {
   const { isDarkMode } = useDarkMode();
   const { t } = useLanguage();
 
   return (
-    <section
-      className={`py-16 px-6 md:px-12 transition-colors ${
-        isDarkMode
-          ? "bg-[var(--color-bg-primary)] text-[var(--color-text-primary)]"
-          : "bg-white text-gray-900"
-      }`}
-    >
-      <div className="max-w-6xl mx-auto flex flex-col md:flex-row items-center justify-between gap-10">
-        {/* Left Content */}
-        <div className="flex-1">
-          <h1 className="text-3xl md:text-5xl font-bold leading-tight">
-            {t("Your Smart AI")} <br />
-            {t("Shopping Assistant")} <br />
-            {t("for Alibaba")}
-          </h1>
-
-          <p className="mt-4 max-w-md text-gray-700 dark:text-gray-300">
-            {t(
-              "Ask in English or Amharic and get instant product recommendations with Ethiopian pricing."
-            )}
-          </p>
-
-          {/* Search Bar */}
-          <div
-            className={`mt-6 flex items-center rounded-md overflow-hidden w-full max-w-md ${
-              isDarkMode ? "bg-gray-800" : "bg-gray-100"
-            }`}
-          >
-            <input
-              type="text"
-              placeholder={t("What do you need to buy today?")}
-              aria-label={t("Search products")}
-              className={`flex-1 px-4 py-2 outline-none ${
-                isDarkMode
-                  ? "bg-gray-800 text-white"
-                  : "bg-gray-100 text-gray-900"
-              }`}
-            />
-            <button
-              aria-label={t("Search")}
-              className="bg-yellow-500 px-4 py-2 flex items-center justify-center hover:bg-yellow-600 transition-colors"
-            >
-              <Search className="w-5 h-5 text-white" />
-            </button>
-          </div>
-
-          {/* Buttons */}
-          <div className="mt-6 flex gap-4">
-            <button className="bg-yellow-500 text-white px-6 py-2 rounded-md font-medium hover:bg-yellow-600 transition-colors">
-              {t("Ask ShopAlly")}
-            </button>
-            <button
-              className={`px-6 py-2 rounded-md font-medium transition-colors border ${
-                isDarkMode
-                  ? "border-gray-300 text-gray-200 hover:bg-gray-200 hover:text-gray-900"
-                  : "border-gray-900 text-gray-900 hover:bg-gray-900 hover:text-white"
-              }`}
-            >
-              {t("See How It Works")}
-            </button>
-          </div>
+    <section className={`flex flex-col-reverse md:flex-row items-center justify-between px-6 py-16 max-w-7xl mx-auto ${isDarkMode ? "bg-[var(--color-bg-primary)] text-[var(--color-text-primary)]" : "bg-white text-[#262B32]"}`}>
+      <motion.div variants={fadeInUp} initial="hidden" whileInView="visible" className="md:w-1/2 space-y-4">
+        <h1 className="text-3xl md:text-5xl font-bold">
+          {t("Shop Smarter in Ethiopia with")} <span className="text-[#FFD300]">ShopAlly</span>
+        </h1>
+        <p>{t("Your AI-powered shopping assistant that finds the best products, compares prices in ETB, and saves you time.")}</p>
+        <div className="flex gap-4">
+          <button className="bg-[#FFD300] text-black px-6 py-3 rounded font-semibold">{t("Get Started")}</button>
+          <button className="border border-[#262B32] text-[#262B32] px-6 py-3 rounded font-semibold">{t("Watch Demo")}</button>
         </div>
-      </div>
+      </motion.div>
+      <motion.div
+        className="md:w-1/2"
+        animate={{ x: [0, 100, 0, -100, 0], rotate: [0, 0, 360, 0, 0] }}
+        transition={{ repeat: Infinity, duration: 8, ease: "easeInOut" }}
+      >
+        <Image src="/landing/cart.png" alt="App Mockup" width={400} height={400} priority />
+      </motion.div>
     </section>
   );
 }

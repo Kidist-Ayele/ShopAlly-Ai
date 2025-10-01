@@ -1,27 +1,24 @@
-// app/page.tsx
-import Hero from "../../components/LandingPageComponents/Hero";
-import Sidebar from "@/app/components/Sidebar";
-import HowItWorks from "@/app/components/HowItWorks/HowItWorks";
-import PopularSearches from "@/app/components/LandingPageComponents/PopularSearches";
-import FeaturedDeals from "@/app/components/LandingPageComponents/FeaturedDeals";
+"use client";
+
+import Header from "@/app/components/LandingPageComponents/Header";
+import Hero from "@/app/components/LandingPageComponents/Hero";
+import Features from "@/app/components/LandingPageComponents/Features";
+import Testimonials from "@/app/components/LandingPageComponents/Testimonials";
+import Demo from "@/app/components/LandingPageComponents/Demo";
+import Download from "@/app/components/LandingPageComponents/Download";
 import Footer from "@/app/components/LandingPageComponents/Footer";
-import QRCodeSection from "@/app/components/LandingPageComponents/QRCodeSection";
+import HowItWorks from "@/app/components/LandingPageComponents/HowItWorks";
 
-export default function Home() {
+export default function LandingPage() {
   return (
-    <main>
-      {/* Sidebar fixed at top */}
-      <Sidebar activePage="home" />
-
-      {/* Sections with spacing */}
-      <div className="space-y-20">
-        <Hero />
-        <HowItWorks />
-        <PopularSearches />
-        <FeaturedDeals />
-        <QRCodeSection />
-      </div>
-
+    <main className="scroll-smooth">
+       <Header />
+      <Hero />
+      <Features />
+      <HowItWorks /> 
+      <Demo />
+      <Testimonials />
+      <Download />
       <Footer />
     </main>
   );
