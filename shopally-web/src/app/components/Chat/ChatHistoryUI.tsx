@@ -138,29 +138,36 @@ export default function ChatHistoryUI() {
 
   return (
     <main
-      className={`min-h-screen pb-24 px-4 sm:px-6 lg:px-8 ${
+      className={`min-h-screen pb-24 p-2 sm:p-4 lg:p-8 ${
         isDarkMode ? "bg-[#090C11] text-white" : "bg-white text-black"
       }`}
     >
       {/* Header */}
-      <div className="flex justify-between items-center py-6 max-w-4xl mx-auto">
-        <h1 className="text-2xl font-bold">{t("Your Chat History")}</h1>
+      <h1
+        className="text-2xl sm:text-3xl font-bold mb-6 sm:mb-8 transition-colors"
+        style={{ color: "var(--color-text-primary)" }}
+      >
+        {t("Your Chat History")}
+      </h1>
+
+      {/* New Chat Button - floating popup like home page */}
+      <div className="fixed top-4 right-4 z-50">
         <button
           onClick={handleNewChat}
           disabled={creating}
-          className="flex items-center gap-2 px-4 py-2 bg-yellow-400 text-black rounded-xl font-medium shadow-md hover:bg-yellow-500 disabled:opacity-70"
+          className="flex items-center gap-2 px-2 sm:px-4 py-2 bg-yellow-400 text-black rounded-xl font-medium shadow-md hover:bg-yellow-500 disabled:opacity-70 transition-colors"
         >
           {creating ? (
             <Loader2 className="w-4 h-4 animate-spin" />
           ) : (
             <PlusCircle className="w-4 h-4" />
           )}
-          {t("New Chat")}
+          <span className="hidden sm:inline">{t("New Chat")}</span>
         </button>
       </div>
 
       {/* Chat List */}
-      <div className="max-w-4xl mx-auto">
+      <div>
         {!session ? (
           <p className="text-center text-gray-400 py-12">
             {t("Please sign in to view your chats.")}
