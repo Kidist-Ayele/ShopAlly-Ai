@@ -4,25 +4,59 @@ import { AIRecommendation } from "@/app/components/ComparisonComponents/AIRecomm
 import { ComparisonTable } from "@/app/components/ComparisonComponents/ComparisonTable";
 import { ProductCard } from "@/app/components/ComparisonComponents/ProductCard";
 import { useLanguage } from "@/hooks/useLanguage";
-import type { ComparisonItem } from "@/types/Compare/Comparison";
+import type {
+  ComparisonItem,
+  OverallComparison,
+} from "@/types/Compare/Comparison";
 import { useEffect, useState } from "react";
 
 export default function ComparePage() {
   const [comparison, setComparison] = useState<ComparisonItem[]>([]);
+  const [overallComparison, setOverallComparison] =
+    useState<OverallComparison | null>(null);
   const [loading, setLoading] = useState(true);
   const { t } = useLanguage();
 
   // Load comparison from localStorage
   useEffect(() => {
     const data = localStorage.getItem("comparisonResults");
+    const overallData = localStorage.getItem("overallComparison");
+
+    console.log("📂 Loading comparison from storage");
+    console.log("   Products:", data ? "exists" : "missing");
+    console.log("   Overall:", overallData ? "exists" : "missing");
+
     if (data) {
       try {
         const parsed = JSON.parse(data);
-        setComparison(parsed); // parsed is already an array of { product, synthesis }
+        console.log(
+          "✅ Parsed data type:",
+          typeof parsed,
+          Array.isArray(parsed)
+        );
+        console.log("✅ Parsed data:", parsed);
+        console.log("✅ Length:", parsed?.length || 0);
+
+        if (Array.isArray(parsed) && parsed.length > 0) {
+          setComparison(parsed);
+        } else {
+          console.warn("⚠️ Data is not an array or is empty");
+        }
       } catch (e) {
         console.error("❌ Failed to parse comparison results:", e);
       }
     }
+
+    if (overallData) {
+      try {
+        const parsedOverall = JSON.parse(overallData);
+        console.log("✅ Overall comparison:", parsedOverall);
+        setOverallComparison(parsedOverall);
+      } catch (e) {
+        console.error("❌ Failed to parse overall comparison:", e);
+      }
+    }
+
     setLoading(false);
   }, []);
 
@@ -123,7 +157,10 @@ export default function ComparePage() {
 
       {/* Comparison Table & AI Recommendation */}
       <ComparisonTable comparison={comparison} />
-      <AIRecommendation comparison={comparison} />
+      <AIRecommendation
+        comparison={comparison}
+        overallComparison={overallComparison}
+      />
     </div>
   );
 }

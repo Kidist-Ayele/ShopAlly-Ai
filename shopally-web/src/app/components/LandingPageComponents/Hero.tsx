@@ -20,8 +20,8 @@ export default function Hero() {
         {/* Left Content */}
         <div className="flex-1">
           <h1 className="text-3xl md:text-5xl font-bold leading-tight">
-            {t("Your Smart AI")} <br /> 
-            {t("Shopping Assistant")} <br /> 
+            {t("Your Smart AI")} <br />
+            {t("Shopping Assistant")} <br />
             {t("for Alibaba")}
           </h1>
 
@@ -42,7 +42,9 @@ export default function Hero() {
               placeholder={t("What do you need to buy today?")}
               aria-label={t("Search products")}
               className={`flex-1 px-4 py-2 outline-none ${
-                isDarkMode ? "bg-gray-800 text-white" : "bg-gray-100 text-gray-900"
+                isDarkMode
+                  ? "bg-gray-800 text-white"
+                  : "bg-gray-100 text-gray-900"
               }`}
             />
             <button

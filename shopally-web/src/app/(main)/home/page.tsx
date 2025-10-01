@@ -2,10 +2,12 @@
 "use client";
 
 import CardComponent from "@/app/components/home-page-component/HomeCard";
+import CompareModal from "@/app/components/ComparisonComponents/CompareModal";
 import { useDarkMode } from "@/app/components/ProfileComponents/DarkModeContext";
 import { useLanguage } from "@/hooks/useLanguage";
 import {
   useCompareProductsMutation,
+  useImageSearchMutation,
   useSearchProductsMutation,
 } from "@/lib/redux/api/userApiSlice";
 import { ComparePayload } from "@/types/Compare/Comparison";
@@ -19,6 +21,7 @@ import {
   PlusCircle,
 } from "lucide-react";
 import { useEffect, useState } from "react";
+import Image from "next/image";
 
 // new //
 import {
@@ -36,6 +39,7 @@ interface ConversationMessage {
   content: string;
   products?: Product[];
   timestamp: number;
+  imageUrl?: string;
 }
 
 export default function Home() {
@@ -48,6 +52,8 @@ export default function Home() {
   const userEmail: string | null = session?.user?.email ?? null;
   const [createChat] = useCreateChatMutation();
   const [addNewMessage] = useAddNewMessageMutation();
+  const [imageSearch, { isLoading: isImageSearching }] =
+    useImageSearchMutation();
   const getStoredChatId = (): string | null => {
     return localStorage.getItem("chatId");
   };
@@ -60,19 +66,29 @@ export default function Home() {
   const [conversation, setConversation] = useState<ConversationMessage[]>([]);
   const [isClient, setIsClient] = useState(false);
   const [input, setInput] = useState("");
+  const [attachedImage, setAttachedImage] = useState<File | null>(null);
   const [compareList, setCompareList] = useState<Product[]>([]);
   const [expandedMessages, setExpandedMessages] = useState<Set<string>>(
     new Set()
   );
-  const [creating, setCreating] = useState(false);
+  const [creating] = useState(false);
+  const [showCompareModal, setShowCompareModal] = useState(false);
 
   const [searchProducts, { isLoading }] = useSearchProductsMutation();
   const [compareProducts, { isLoading: isComparing }] =
     useCompareProductsMutation();
 
   const handleSend = async () => {
-    if (input.trim() === "") return;
+    if (input.trim() === "" && !attachedImage) return;
 
+    // If there's an attached image, handle image search
+    if (attachedImage) {
+      await handleImageSearch(attachedImage);
+      setAttachedImage(null);
+      return;
+    }
+
+    // Handle text search
     const userMessage: ConversationMessage = {
       id: `user-${Date.now()}`,
       type: "user",
@@ -161,6 +177,148 @@ export default function Home() {
     }
   };
 
+  const handleImageAttachment = (file: File) => {
+    setAttachedImage(file);
+  };
+
+  const handleImageSearch = async (file: File) => {
+    if (!file) return;
+
+    // Convert the file to a Base64 string
+    const fileToDataUrl = (file: File): Promise<string> => {
+      return new Promise((resolve, reject) => {
+        const reader = new FileReader();
+        reader.onload = () => {
+          if (reader.result) resolve(reader.result.toString());
+          else reject("Failed to read file");
+        };
+        reader.onerror = () => reject(reader.error);
+        reader.readAsDataURL(file);
+      });
+    };
+
+    try {
+      // 1️⃣ Convert image to Base64 and save in localStorage
+      const imageDataUrl = await fileToDataUrl(file);
+      const imageKey = `uploadedImage-${Date.now()}`;
+      localStorage.setItem(imageKey, imageDataUrl);
+
+      // 2️⃣ Add user message to conversation (with image)
+      const userMessage: ConversationMessage = {
+        id: `user-${Date.now()}`,
+        type: "user",
+        content: imageKey,
+        timestamp: Date.now(),
+        imageUrl: imageKey, // important: so the user image renders
+      };
+      setConversation((prev) => [...prev, userMessage]);
+
+      // 3️⃣ Call the backend image search
+      const res = await imageSearch({ image: file }).unwrap();
+
+      // 4️⃣ Extract products safely
+      const products =
+        res?.data && typeof res.data !== "string" && "products" in res.data
+          ? res.data.products
+          : [];
+
+      // 5️⃣ Add AI message to conversation including the image URL
+      const aiMessage: ConversationMessage = {
+        id: `ai-${Date.now()}`,
+        type: "ai",
+        content: `Found ${products.length} products for your image`,
+        products,
+        timestamp: Date.now(),
+        imageUrl: imageKey, // same key so the image displays under AI message too
+      };
+
+      setConversation((prev) => [...prev, aiMessage]);
+
+      // 6️⃣ Optional: persist in chat API if needed
+      (async () => {
+        try {
+          let chatId = getStoredChatId();
+          if (!userEmail) return;
+
+          if (!chatId) {
+            const newChat = await createChat({
+              userEmail,
+              data: { chat_title: imageKey },
+            }).unwrap();
+            chatId = newChat.data?.chat_id ?? null;
+            if (chatId) setStoredChatId(chatId);
+          }
+
+          if (chatId) {
+            await addNewMessage({
+              userEmail,
+              chatId,
+              data: {
+                user_prompt: imageKey,
+                products: products.map((p) => ({ ...p, removeProduct: false })),
+              },
+            }).unwrap();
+          }
+        } catch (err) {
+          console.error("❌ Chat persistence failed:", err);
+        }
+      })();
+    } catch (err) {
+      console.error("❌ Image search failed:", err);
+
+      let errorContent = "Sorry, we couldn't find products for this image.";
+
+      // Check for rate limit error
+      if (typeof err === "object" && err !== null) {
+        const error = err as FetchBaseQueryError | SerializedError;
+
+        if ("status" in error) {
+          // Check if it's a rate limit error (429 status)
+          if (error.status === 429) {
+            errorContent =
+              "⏳ You've reached the image search limit. Please try again in a few minutes or use text search instead.";
+          }
+          // Check for file too large error
+          else if (error.status === 413) {
+            errorContent =
+              "📸 Image file is too large. Please upload a smaller image (max 5MB).";
+          }
+        }
+
+        // Check for error message in data
+        if ("data" in error && error.data) {
+          const data = error.data as ApiErrorResponse | undefined;
+          const message = data?.error?.message || "";
+
+          if (
+            message.includes("rate limit") ||
+            message.includes("RATE_LIMIT")
+          ) {
+            errorContent =
+              "⏳ You've reached the image search limit. Please try again in a few minutes or use text search instead.";
+          } else if (
+            message.includes("too large") ||
+            message.includes("file size")
+          ) {
+            errorContent =
+              "📸 Image file is too large. Please upload a smaller image (max 5MB).";
+          } else if (message) {
+            errorContent = message;
+          }
+        }
+      }
+
+      const errorMessage: ConversationMessage = {
+        id: `ai-error-${Date.now()}`,
+        type: "ai",
+        content: errorContent,
+        products: [],
+        timestamp: Date.now(),
+      };
+      setConversation((prev) => [...prev, errorMessage]);
+    }
+  };
+
   const toggleExpanded = (messageId: string) => {
     setExpandedMessages((prev) => {
       const newSet = new Set(prev);
@@ -245,12 +403,15 @@ export default function Home() {
     return () => window.removeEventListener("storage", updateCompare);
   }, []);
 
-  const handleCompare = async () => {
+  const handleCompare = () => {
     if (compareList.length < 2 || compareList.length > 4) {
       alert("Please select 2 to 4 products for comparison.");
       return;
     }
+    setShowCompareModal(true);
+  };
 
+  const handleCompareSubmit = async (customCriteria?: string) => {
     try {
       console.log("Sending compare list:", compareList);
 
@@ -267,25 +428,44 @@ export default function Home() {
           summaryBullets: p.summaryBullets,
           deeplinkUrl: p.deeplinkUrl,
         })),
+        ...(customCriteria && { q: customCriteria }), // Add user preference query if provided
       };
 
-      const res = await compareProducts(payload).unwrap();
-      console.log("Comparison result:", res);
-
-      // ✅ Save the response to localStorage
-      localStorage.setItem(
-        "comparisonResults",
-        JSON.stringify(res.data.products) // full ComparisonItem objects
+      console.log(
+        "🔍 Compare:",
+        customCriteria ? `?q=${customCriteria}` : "default"
       );
+
+      console.log("🚀 Calling API...");
+      const res = await compareProducts(payload).unwrap();
+      console.log("✅ API returned:", typeof res, res);
+      console.log("📋 res.data:", res?.data);
+      console.log("📋 Products count:", res?.data?.products?.length || 0);
+      console.log("📋 Overall exists:", !!res?.data?.overallComparison);
+
+      // ✅ Save the response to localStorage (including overallComparison)
+      if (res?.data) {
+        localStorage.setItem(
+          "comparisonResults",
+          JSON.stringify(res.data.products)
+        );
+        localStorage.setItem(
+          "overallComparison",
+          JSON.stringify(res.data.overallComparison)
+        );
+      }
 
       // ✅ Clear compare list storage after success
       localStorage.removeItem("compareProduct");
       setCompareList([]);
+      setShowCompareModal(false);
 
       // ✅ Redirect to compare page
       window.location.href = "/comparison";
     } catch (err: unknown) {
-      console.error("❌ Compare API failed:", err);
+      console.error("❌ Compare API failed:");
+      console.error("   Error type:", typeof err);
+      console.error("   Error:", err);
 
       if (typeof err === "object" && err !== null) {
         const e = err as FetchBaseQueryError | SerializedError;
@@ -376,21 +556,67 @@ export default function Home() {
           }`}
         >
           <input
-            type="text"
-            placeholder={t("Ask me anything about products you need...")}
-            value={input}
-            onChange={(e) => setInput(e.target.value)}
-            onKeyDown={(e) => e.key === "Enter" && handleSend()}
-            className={`flex-1 px-4 py-3 text-sm sm:text-base focus:outline-none min-w-0 placeholder:text-sm ${
-              isDarkMode ? "bg-gray-800 text-white" : "text-black"
-            }`}
+            type="file"
+            accept="image/*"
+            onChange={(e) => {
+              if (e.target.files?.[0]) handleImageAttachment(e.target.files[0]);
+            }}
+            className="hidden"
+            id="imageUpload"
           />
+          <label
+            htmlFor="imageUpload"
+            className="rounded-xl p-3 ml-1 my-1 flex items-center justify-center transition-colors bg-yellow-400 text-black cursor-pointer flex-shrink-0"
+          >
+            <Image
+              src="/attachment.png"
+              alt="Upload image"
+              width={24}
+              height={24}
+              className="w-6 h-6"
+            />
+          </label>
+          <div className="flex-1 flex items-center">
+            <input
+              type="text"
+              placeholder={
+                attachedImage
+                  ? t("Image attached - press Enter to search")
+                  : t("Ask me anything about products you need...")
+              }
+              value={input}
+              onChange={(e) => setInput(e.target.value)}
+              onKeyDown={(e) => e.key === "Enter" && handleSend()}
+              className={`flex-1 px-4 py-3 text-sm sm:text-base focus:outline-none min-w-0 placeholder:text-sm ${
+                isDarkMode ? "bg-gray-800 text-white" : "text-black"
+              }`}
+            />
+            {attachedImage && (
+              <div className="flex items-center gap-2 px-2">
+                <img
+                  src={URL.createObjectURL(attachedImage)}
+                  alt="Attached"
+                  className="w-8 h-8 rounded object-cover"
+                />
+                <button
+                  onClick={() => setAttachedImage(null)}
+                  className="text-gray-500 hover:text-gray-700 text-sm"
+                >
+                  ×
+                </button>
+              </div>
+            )}
+          </div>
           <button
             onClick={handleSend}
-            disabled={isLoading}
-            className="rounded-xl p-3 mr-1 my-1 flex items-center justify-center transition-colors bg-yellow-400 text-black"
+            disabled={
+              isLoading ||
+              isImageSearching ||
+              (input.trim() === "" && !attachedImage)
+            }
+            className="rounded-xl p-3 mr-1 my-1 flex items-center justify-center transition-colors bg-yellow-400 text-black flex-shrink-0 disabled:opacity-50"
           >
-            {isLoading ? (
+            {isLoading || isImageSearching ? (
               <Loader2 size={20} className="animate-spin" />
             ) : (
               <ArrowRight size={20} />
@@ -525,9 +751,18 @@ export default function Home() {
             <div key={message.id} className="flex flex-col gap-2">
               {/* User Message */}
               {message.type === "user" && (
-                <div className="flex justify-end w-full">
-                  <div className="max-w-xs sm:max-w-md break-words px-4 py-2 rounded-xl bg-yellow-400 text-black mr-2">
-                    {message.content}
+                <div className="flex justify-end w-full flex-col gap-2">
+                  <div className="max-w-xs sm:max-w-md break-words px-4 py-2 rounded-xl bg-yellow-400 text-black self-end">
+                    {message.content.startsWith("uploadedImage-") &&
+                    localStorage.getItem(message.content) ? (
+                      <img
+                        src={localStorage.getItem(message.content)!}
+                        alt="uploaded"
+                        className="max-w-30 sm:max-w-30 rounded-xl mt-2 self-end"
+                      />
+                    ) : (
+                      message.content
+                    )}
                   </div>
                 </div>
               )}
@@ -543,7 +778,16 @@ export default function Home() {
                           : "bg-gray-100 text-gray-800"
                       }`}
                     >
-                      {message.content}
+                      {message.content.startsWith("uploadedImage-") &&
+                      localStorage.getItem(message.content) ? (
+                        <img
+                          src={localStorage.getItem(message.content)!}
+                          alt="uploaded"
+                          className="max-w-30 sm:max-w-30 rounded-xl mt-2 self-end"
+                        />
+                      ) : (
+                        message.content
+                      )}
                     </div>
                   </div>
 
@@ -613,21 +857,68 @@ export default function Home() {
             }`}
           >
             <input
-              type="text"
-              placeholder={t("Ask me anything about products you need...")}
-              value={input}
-              onChange={(e) => setInput(e.target.value)}
-              onKeyDown={(e) => e.key === "Enter" && handleSend()}
-              className={`flex-1 px-3 sm:px-4 py-2.5 sm:py-3 text-sm sm:text-base focus:outline-none min-w-0 ${
-                isDarkMode ? "bg-gray-800 text-white" : "text-black"
-              }`}
+              type="file"
+              accept="image/*"
+              onChange={(e) => {
+                if (e.target.files?.[0])
+                  handleImageAttachment(e.target.files[0]);
+              }}
+              className="hidden"
+              id="imageUpload"
             />
+            <label
+              htmlFor="imageUpload"
+              className="rounded-xl p-2.5 sm:p-3 ml-1 my-1 flex items-center justify-center transition-colors bg-yellow-400 text-black cursor-pointer flex-shrink-0"
+            >
+              <Image
+                src="/attachment.png"
+                alt="Upload image"
+                width={22}
+                height={22}
+                className="w-5.5 h-5.5 sm:w-6 sm:h-6"
+              />
+            </label>
+            <div className="flex-1 flex items-center">
+              <input
+                type="text"
+                placeholder={
+                  attachedImage
+                    ? t("Image attached - press Enter to search")
+                    : t("Ask me anything about products you need...")
+                }
+                value={input}
+                onChange={(e) => setInput(e.target.value)}
+                onKeyDown={(e) => e.key === "Enter" && handleSend()}
+                className={`flex-1 px-3 sm:px-4 py-2.5 sm:py-3 text-sm sm:text-base focus:outline-none min-w-0 ${
+                  isDarkMode ? "bg-gray-800 text-white" : "text-black"
+                }`}
+              />
+              {attachedImage && (
+                <div className="flex items-center gap-2 px-2">
+                  <img
+                    src={URL.createObjectURL(attachedImage)}
+                    alt="Attached"
+                    className="w-6 h-6 sm:w-8 sm:h-8 rounded object-cover"
+                  />
+                  <button
+                    onClick={() => setAttachedImage(null)}
+                    className="text-gray-500 hover:text-gray-700 text-sm"
+                  >
+                    ×
+                  </button>
+                </div>
+              )}
+            </div>
             <button
               onClick={handleSend}
-              disabled={isLoading}
-              className="bg-yellow-400 rounded-xl p-2.5 sm:p-3 mr-1 my-1 flex items-center justify-center flex-shrink-0"
+              disabled={
+                isLoading ||
+                isImageSearching ||
+                (input.trim() === "" && !attachedImage)
+              }
+              className="bg-yellow-400 rounded-xl p-2.5 sm:p-3 mr-1 my-1 flex items-center justify-center flex-shrink-0 disabled:opacity-50"
             >
-              {isLoading ? (
+              {isLoading || isImageSearching ? (
                 <Loader2 size={18} className="animate-spin text-black" />
               ) : (
                 <ArrowRight size={18} className="sm:w-5 sm:h-5 text-black" />
@@ -636,6 +927,14 @@ export default function Home() {
           </div>
         </div>
       </section>
+
+      {/* Compare Modal */}
+      <CompareModal
+        isOpen={showCompareModal}
+        onClose={() => setShowCompareModal(false)}
+        onSubmit={handleCompareSubmit}
+        isLoading={isComparing}
+      />
     </main>
   );
 }

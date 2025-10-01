@@ -1,5 +1,9 @@
 //src/lib/redux/api/userApiSlice.ts
-import { ComparisonResponse } from "@/types/Compare/Comparison";
+import { ComparisonResponse, ComparePayload } from "@/types/Compare/Comparison";
+import {
+  ImageSearchRequest,
+  ImageSearchResponse,
+} from "@/types/ImageSearch/ImageSearchResponse";
 import { AlertCreateResponse } from "@/types/SavedItems/AlertCreateResponse";
 import { AlertDeleteResponse } from "@/types/SavedItems/AlertDeleteResponse";
 import {
@@ -61,13 +65,20 @@ export const userApi = createApi({
 
     compareProducts: builder.mutation<
       ComparisonResponse,
-      { products: Product[] }
+      ComparePayload
     >({
-      query: (data) => ({
-        url: "compare",
-        method: "POST",
-        body: data,
-      }),
+      query: ({ q, products }) => {
+        const params = new URLSearchParams();
+        if (q) params.append("q", q);
+        
+        const url = params.toString() ? `compare?${params.toString()}` : "compare";
+        
+        return {
+          url,
+          method: "POST",
+          body: { products },
+        };
+      },
     }),
 
     updatePrice: builder.mutation<UpdateProductResponse, { productId: string }>(
@@ -78,6 +89,23 @@ export const userApi = createApi({
         }),
       }
     ),
+
+    imageSearch: builder.mutation<ImageSearchResponse, ImageSearchRequest>({
+      query: ({ image, priceMaxETB, minRating, confidenceThreshold }) => {
+        const formData = new FormData();
+        formData.append("image", image);
+        if (priceMaxETB) formData.append("priceMaxETB", String(priceMaxETB));
+        if (minRating) formData.append("minRating", String(minRating));
+        if (confidenceThreshold)
+          formData.append("confidenceThreshold", String(confidenceThreshold));
+
+        return {
+          url: "image/search",
+          method: "POST",
+          body: formData,
+        };
+      },
+    }),
   }),
 });
 
@@ -87,4 +115,5 @@ export const {
   useSearchProductsMutation,
   useCompareProductsMutation,
   useUpdatePriceMutation,
+  useImageSearchMutation,
 } = userApi;
