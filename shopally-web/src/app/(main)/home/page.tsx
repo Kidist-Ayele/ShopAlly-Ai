@@ -747,7 +747,7 @@ export default function Home() {
                       .catch((err) => {
                         console.error("❌ Search failed:", err);
 
-                        let errorContent = `Sorry, I couldn't find products for "${q}". Please try again.`;
+                        const errorContent = `Sorry, I couldn't find products for "${q}". Please try again.`;
                         const errorMessage: ConversationMessage = {
                           id: `ai-error-${Date.now()}`,
                           type: "ai",
