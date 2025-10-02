@@ -264,7 +264,7 @@ export default function Sidebar({ activePage = "profile" }: SidebarProps) {
         }}
       >
         <button
-          onClick={() => signOut({ callbackUrl: "/signin" })}
+          onClick={() => signOut({ callbackUrl: "/landing-page" })}
           className="flex items-center justify-center lg:justify-start gap-2 lg:gap-3 px-2 py-2 lg:px-3 lg:py-2 rounded-md w-full transition-colors hover:opacity-80"
           style={{
             color: "var(--color-text-secondary)",

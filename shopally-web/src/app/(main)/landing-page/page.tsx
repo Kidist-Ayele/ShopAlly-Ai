@@ -1,5 +1,9 @@
 "use client";
 
+import { useEffect } from "react";
+import { useSession } from "next-auth/react";
+import { useRouter } from "next/navigation";
+
 import Header from "@/app/components/LandingPageComponents/Header";
 import Hero from "@/app/components/LandingPageComponents/Hero";
 import Features from "@/app/components/LandingPageComponents/Features";
@@ -10,12 +14,24 @@ import Footer from "@/app/components/LandingPageComponents/Footer";
 import HowItWorks from "@/app/components/LandingPageComponents/HowItWorks";
 
 export default function LandingPage() {
+  const { data: session, status } = useSession();
+  const router = useRouter();
+
+  useEffect(() => {
+    if (status === "authenticated") {
+      router.push("/home"); // redirect signed-in users
+    }
+  }, [status, router]);
+
+  if (status === "loading") return null; // wait for session check
+
+  // Render landing page only if not signed in
   return (
     <main className="scroll-smooth">
-       <Header />
+      <Header />
       <Hero />
       <Features />
-      <HowItWorks /> 
+      <HowItWorks />
       <Demo />
       <Testimonials />
       <Download />

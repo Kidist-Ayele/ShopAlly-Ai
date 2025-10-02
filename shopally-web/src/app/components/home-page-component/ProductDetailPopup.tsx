@@ -9,7 +9,7 @@ import { SavedItem } from "@/types/types";
 import { formatPriceForEthiopia } from "@/utils/priceUtils";
 import { useDarkMode } from "@/app/components/ProfileComponents/DarkModeContext";
 
-interface ProductDetailPopupProps {
+interface ProductDetailPopupProps {git add
   product: Product;
   isOpen: boolean;
   onClose: () => void;
