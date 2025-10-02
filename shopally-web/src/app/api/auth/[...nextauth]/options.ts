@@ -19,7 +19,7 @@ export const options: NextAuthOptions = {
   ],
 
   pages: {
-    signIn: '/signin',
+    signIn: '/landing-page', 
   },
 
   session: {
