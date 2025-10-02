@@ -10,7 +10,7 @@ export default function HowItWorks() {
   return (
     <section
       id="how-it-works"
-      className={`mt-32 mb-32 px-6 py-20 text-center ${
+      className={`mt-30 mb-30 px-6 py-10 text-center ${
         isDarkMode
           ? "bg-[var(--color-bg-primary)] text-[var(--color-text-primary)]"
           : "bg-[#F7F9FB] text-[#262B32]"
