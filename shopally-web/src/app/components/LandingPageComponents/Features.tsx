@@ -24,7 +24,7 @@ export default function Features() {
     { icon: "📊", title: "Compare & Save", desc: "Side-by-side product analysis to help you save." },
     { icon: "🔒", title: "Official API Integration", desc: "Secure integration with Alibaba/AliExpress APIs." },
     { icon: "🖼️", title: "Image Search", desc: "Find products by uploading or searching with a photo." },
-    { icon: "🔔", title: "Price Alerts", desc: "Receive notifications when product prices drop." },
+    { icon: "🔔", title: "Price Alerts", desc: "Receive notifications when product prices change." },
   ];
 
   return (

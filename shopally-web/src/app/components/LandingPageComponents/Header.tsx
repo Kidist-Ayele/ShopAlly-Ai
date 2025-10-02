@@ -1,9 +1,10 @@
-"use client";
+'use client';
 
 import { motion, Variants } from "framer-motion";
 import { useDarkMode } from "@/app/components/ProfileComponents/DarkModeContext";
 import { useLanguage } from "@/hooks/useLanguage";
 import { useRouter } from "next/navigation";
+import { useEffect, useState } from "react";
 
 const fadeInUp: Variants = {
   hidden: { opacity: 0, y: 24 },
@@ -15,12 +16,38 @@ export default function Header() {
   const { t } = useLanguage();
   const router = useRouter();
 
-  const navItems = ["Features", "How It Works", "Testimonials", "Download"];
+  const navItems = ["Features", "How It Works", "Demo", "Testimonials"];
+  const [activeSection, setActiveSection] = useState<string>("");
 
   const scrollToSection = (id: string) => {
     const section = document.getElementById(id);
     if (section) section.scrollIntoView({ behavior: "smooth" });
   };
+
+  // Scrollspy effect
+  useEffect(() => {
+    const handleScroll = () => {
+      const scrollPosition = window.scrollY + 150; 
+      let currentSection = "";
+
+      navItems.forEach((label) => {
+        const section = document.getElementById(label.toLowerCase().replace(/\s/g, '-'));
+        if (section) {
+          const offsetTop = section.offsetTop;
+          const offsetHeight = section.offsetHeight;
+          if (scrollPosition >= offsetTop && scrollPosition < offsetTop + offsetHeight) {
+            currentSection = label;
+          }
+        }
+      });
+
+      setActiveSection(currentSection);
+    };
+
+    window.addEventListener("scroll", handleScroll);
+    handleScroll(); // initial check
+    return () => window.removeEventListener("scroll", handleScroll);
+  }, []);
 
   return (
     <header
@@ -40,13 +67,6 @@ export default function Header() {
             src="WebsiteLogo/Frame.png"
             alt="ShopAlly Logo"
             className="object-contain w-4 h-4 lg:w-5 lg:h-5"
-            onError={(e) => {
-              e.currentTarget.style.display = "none";
-              const fallback = document.createElement("span");
-              fallback.textContent = "S";
-              fallback.className = "text-black font-bold text-sm";
-              e.currentTarget.parentNode?.appendChild(fallback);
-            }}
           />
         </div>
         <span
@@ -59,20 +79,27 @@ export default function Header() {
 
       {/* Navigation */}
       <nav className="hidden md:flex gap-6 text-sm font-medium">
-        {navItems.map((label, i) => (
-          <motion.a
-            key={i}
-            href={`#${label.toLowerCase().replace(/\s/g, '-')}`}
-            variants={fadeInUp}
-            onClick={(e) => {
-              e.preventDefault();
-              scrollToSection(label.toLowerCase().replace(/\s/g, '-'));
-            }}
-            className="hover:text-[#FFD300]"
-          >
-            {t(label)}
-          </motion.a>
-        ))}
+        {navItems.map((label, i) => {
+          const id = label.toLowerCase().replace(/\s/g, '-');
+          const isActive = activeSection === label;
+
+          return (
+            <motion.a
+              key={i}
+              href={`#${id}`}
+              variants={fadeInUp}
+              onClick={(e) => {
+                e.preventDefault();
+                scrollToSection(id);
+              }}
+              className={`transition-colors cursor-pointer ${
+                isActive ? "text-[#FFD300]" : "text-gray-700 hover:text-[#FFD300]"
+              }`}
+            >
+              {t(label)}
+            </motion.a>
+          );
+        })}
       </nav>
 
       {/* Get Started Button */}

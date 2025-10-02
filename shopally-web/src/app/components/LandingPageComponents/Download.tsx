@@ -39,8 +39,8 @@ export default function Download() {
             <QRCodeCanvas
               value="https://shop-ally-ai.vercel.app/"
               size={200}
-              bgColor="#FFD300"  // yellow background inside QR
-              fgColor="#000000"  // black QR
+              bgColor="#FFD300"  
+              fgColor="#000000" 
               includeMargin={true}
             />
           </div>
