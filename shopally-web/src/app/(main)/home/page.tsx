@@ -196,27 +196,98 @@ export default function Home() {
     setAttachedImage(file);
   };
 
+  // Helper function to clean up old images from localStorage
+  const cleanupOldImages = () => {
+    try {
+      const keys = Object.keys(localStorage);
+      const imageKeys = keys.filter((key) => key.startsWith("uploadedImage-"));
+
+      // Sort by timestamp (newest first) and keep only the last 5 images
+      const sortedKeys = imageKeys.sort((a, b) => {
+        const timestampA = parseInt(a.split("-")[1]);
+        const timestampB = parseInt(b.split("-")[1]);
+        return timestampB - timestampA;
+      });
+
+      // Remove old images (keep only the 5 most recent)
+      if (sortedKeys.length > 5) {
+        const keysToRemove = sortedKeys.slice(5);
+        keysToRemove.forEach((key) => localStorage.removeItem(key));
+        console.log(
+          `🧹 Cleaned up ${keysToRemove.length} old images from localStorage`
+        );
+      }
+    } catch (err) {
+      console.error("❌ Failed to cleanup old images:", err);
+    }
+  };
+
+  // Helper function to safely store image in localStorage with quota handling
+  const storeImageSafely = async (file: File): Promise<string> => {
+    return new Promise((resolve, reject) => {
+      const reader = new FileReader();
+      reader.onload = () => {
+        if (reader.result) {
+          const imageDataUrl = reader.result.toString();
+          const imageKey = `uploadedImage-${Date.now()}`;
+
+          try {
+            // Clean up old images first to make space
+            cleanupOldImages();
+
+            // Try to store the image
+            localStorage.setItem(imageKey, imageDataUrl);
+            resolve(imageKey);
+          } catch (quotaError) {
+            console.error("❌ localStorage quota exceeded:", quotaError);
+
+            // If quota is exceeded, try to clean up more aggressively
+            try {
+              // Remove all old images except the most recent 2
+              const keys = Object.keys(localStorage);
+              const imageKeys = keys.filter((key) =>
+                key.startsWith("uploadedImage-")
+              );
+              const sortedKeys = imageKeys.sort((a, b) => {
+                const timestampA = parseInt(a.split("-")[1]);
+                const timestampB = parseInt(b.split("-")[1]);
+                return timestampB - timestampA;
+              });
+
+              // Keep only the 2 most recent images
+              const keysToRemove = sortedKeys.slice(2);
+              keysToRemove.forEach((key) => localStorage.removeItem(key));
+
+              // Try storing again
+              localStorage.setItem(imageKey, imageDataUrl);
+              resolve(imageKey);
+            } catch (secondQuotaError) {
+              console.error(
+                "❌ Still quota exceeded after cleanup:",
+                secondQuotaError
+              );
+              reject(
+                new Error(
+                  "Storage quota exceeded. Please try with a smaller image or clear your browser data."
+                )
+              );
+            }
+          }
+        } else {
+          reject(new Error("Failed to read file"));
+        }
+      };
+      reader.onerror = () => reject(reader.error);
+      reader.readAsDataURL(file);
+    });
+  };
+
   const handleImageSearch = async (file: File) => {
     if (!file) return;
 
-    // Convert the file to a Base64 string
-    const fileToDataUrl = (file: File): Promise<string> => {
-      return new Promise((resolve, reject) => {
-        const reader = new FileReader();
-        reader.onload = () => {
-          if (reader.result) resolve(reader.result.toString());
-          else reject("Failed to read file");
-        };
-        reader.onerror = () => reject(reader.error);
-        reader.readAsDataURL(file);
-      });
-    };
-
     try {
-      // 1️⃣ Convert image to Base64 and save in localStorage
-      const imageDataUrl = await fileToDataUrl(file);
-      const imageKey = `uploadedImage-${Date.now()}`;
-      localStorage.setItem(imageKey, imageDataUrl);
+      // 1️⃣ Store image safely with quota handling
+      const imageKey = await storeImageSafely(file);
 
       // 2️⃣ Add user message to conversation (with image)
       const userMessage: ConversationMessage = {
@@ -258,7 +329,7 @@ export default function Home() {
           if (!chatId) {
             const newChat = await createChat({
               userEmail,
-              data: { chat_title: imageKey },
+              data: { chat_title: "Image Search" },
             }).unwrap();
             chatId = newChat.data?.chat_id ?? null;
             if (chatId) setStoredChatId(chatId);
@@ -269,7 +340,7 @@ export default function Home() {
               userEmail,
               chatId,
               data: {
-                user_prompt: imageKey,
+                user_prompt: "Image search",
                 products: products.map((p) => ({ ...p, removeProduct: false })),
               },
             }).unwrap();
@@ -283,8 +354,16 @@ export default function Home() {
 
       let errorContent = "Sorry, we couldn't find products for this image.";
 
+      // Handle storage quota exceeded error
+      if (
+        err instanceof Error &&
+        err.message.includes("Storage quota exceeded")
+      ) {
+        errorContent =
+          "💾 Storage quota exceeded. Please try with a smaller image or clear your browser data.";
+      }
       // Check for rate limit error
-      if (typeof err === "object" && err !== null) {
+      else if (typeof err === "object" && err !== null) {
         const error = err as FetchBaseQueryError | SerializedError;
 
         if ("status" in error) {
@@ -375,6 +454,9 @@ export default function Home() {
   // Set client flag and load conversation from localStorage
   useEffect(() => {
     setIsClient(true);
+
+    // Clean up old images on component mount
+    cleanupOldImages();
 
     // Load conversation from localStorage
     const stored = localStorage.getItem("conversation");
