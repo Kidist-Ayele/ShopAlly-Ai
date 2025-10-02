@@ -43,7 +43,9 @@ const Demo = forwardRef<HTMLDivElement>((props, ref) => {
       ref={ref}
       id="demo"
       className={`py-20 px-6 text-center ${
-        isDarkMode ? "bg-[var(--color-bg-primary)] text-[var(--color-text-primary)]" : "bg-white text-[#262B32]"
+        isDarkMode
+          ? "bg-[var(--color-bg-primary)] text-[var(--color-text-primary)]"
+          : "bg-white text-[#262B32]"
       }`}
     >
       <motion.div initial="hidden" whileInView="visible" viewport={{ once: false }}>
@@ -64,7 +66,7 @@ const Demo = forwardRef<HTMLDivElement>((props, ref) => {
             {t("ShopAlly Demo Video")}
           </div>
 
-          <div className="relative w-full h-0 pb-[56.25%] rounded-lg overflow-hidden">
+          <div className="relative w-full aspect-video rounded-lg overflow-hidden">
             {!isPlaying && (
               <div className="absolute inset-0 flex items-center justify-center bg-gray-300 dark:bg-gray-700">
                 <motion.button
@@ -87,7 +89,7 @@ const Demo = forwardRef<HTMLDivElement>((props, ref) => {
 
             <video
               ref={videoRef}
-              className="absolute inset-0 w-full h-full object-cover rounded-lg"
+              className="absolute inset-0 w-full h-full object-contain rounded-lg"
               src="/demo/shop.mp4"
               controls={isPlaying}
               autoPlay={isPlaying}

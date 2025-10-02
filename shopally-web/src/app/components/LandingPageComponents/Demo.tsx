@@ -1,4 +1,4 @@
-"use client";
+'use client';
 
 import { forwardRef, useRef, useState, useEffect } from "react";
 import { motion, Variants } from "framer-motion";
@@ -22,13 +22,13 @@ const Demo = forwardRef<HTMLDivElement>((props, ref) => {
       (entries) => {
         entries.forEach((entry) => {
           if (entry.isIntersecting && videoRef.current && !isPlaying) {
-            videoRef.current.muted = true; 
+            videoRef.current.muted = true;
             videoRef.current.play().catch((err) => console.error(err));
             setIsPlaying(true);
           }
         });
       },
-      { threshold: 0.5 } 
+      { threshold: 0.5 }
     );
 
     if (videoRef.current) observer.observe(videoRef.current);
@@ -43,12 +43,14 @@ const Demo = forwardRef<HTMLDivElement>((props, ref) => {
       ref={ref}
       id="demo"
       className={`py-20 px-6 text-center ${
-        isDarkMode ? "bg-[var(--color-bg-primary)] text-[var(--color-text-primary)]" : "bg-white text-[#262B32]"
+        isDarkMode
+          ? "bg-[var(--color-bg-primary)] text-[var(--color-text-primary)]"
+          : "bg-white text-[#262B32]"
       }`}
     >
       <motion.div initial="hidden" whileInView="visible" viewport={{ once: false }}>
         <motion.h2 variants={fadeInUp} className="text-2xl md:text-3xl font-bold mb-2">
-          {t("See ShopAlly in Action")}
+          {t("See")} <span className="text-brand">ShopAlly</span> {t("in Action")}
         </motion.h2>
         <motion.p variants={fadeInUp} className="mb-8 text-gray-600 dark:text-gray-300">
           {t("Affordable shopping made simple")}
@@ -60,9 +62,11 @@ const Demo = forwardRef<HTMLDivElement>((props, ref) => {
             isDarkMode ? "bg-[var(--color-card-bg)]" : "bg-[#F7F9FB]"
           }`}
         >
-          <div className="text-2xl md:text-3xl font-semibold mb-4">{t("ShopAlly Demo Video")}</div>
+          <div className="text-2xl md:text-3xl font-semibold mb-4">
+            {t("ShopAlly Demo Video")}
+          </div>
 
-          <div className="relative w-full h-0 pb-[56.25%] rounded-lg overflow-hidden">
+          <div className="relative w-full aspect-video rounded-lg overflow-hidden">
             {!isPlaying && (
               <div className="absolute inset-0 flex items-center justify-center bg-gray-300 dark:bg-gray-700">
                 <motion.button
@@ -85,7 +89,7 @@ const Demo = forwardRef<HTMLDivElement>((props, ref) => {
 
             <video
               ref={videoRef}
-              className="absolute inset-0 w-full h-full object-cover rounded-lg"
+              className="absolute inset-0 w-full h-full object-contain rounded-lg"
               src="/demo/shop.mp4"
               controls={isPlaying}
               autoPlay={isPlaying}
