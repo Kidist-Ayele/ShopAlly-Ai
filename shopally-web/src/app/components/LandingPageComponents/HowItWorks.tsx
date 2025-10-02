@@ -35,7 +35,7 @@ export default function HowItWorks() {
             </div>
             <h3 className="font-semibold text-xl mb-3">{t("Ask a Question")}</h3>
             <p className="text-gray-500 text-sm max-w-xs">
-              {t("Type your question in English or Amharic about what you need to buy")}
+              {t("Type your question in English or Amharic about what you need to buy, or search by image.")}
             </p>
           </div>
 

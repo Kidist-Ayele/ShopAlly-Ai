@@ -12,6 +12,7 @@ import Demo from "@/app/components/LandingPageComponents/Demo";
 import Download from "@/app/components/LandingPageComponents/Download";
 import Footer from "@/app/components/LandingPageComponents/Footer";
 import HowItWorks from "@/app/components/LandingPageComponents/HowItWorks";
+import GetStarted from "@/app/components/LandingPageComponents/GetStarted";
 
 export default function LandingPage() {
   const { data: session, status } = useSession();
@@ -34,6 +35,7 @@ export default function LandingPage() {
       <HowItWorks />
       <Demo />
       <Testimonials />
+      <GetStarted />
       <Footer />
     </main>
   );
