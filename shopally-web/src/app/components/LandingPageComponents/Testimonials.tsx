@@ -20,7 +20,12 @@ export default function Testimonials() {
   const { t } = useLanguage();
 
   return (
-    <section className={`py-20 px-6 ${isDarkMode ? "bg-[var(--color-bg-primary)] text-[var(--color-text-primary)]" : "bg-[#F7F9FB] text-[#262B32]"}`}>
+    <section
+      id="testimonials" // <-- This ensures header/footer links work
+      className={`py-20 px-6 ${
+        isDarkMode ? "bg-[var(--color-bg-primary)] text-[var(--color-text-primary)]" : "bg-[#F7F9FB] text-[#262B32]"
+      }`}
+    >
       <div className="max-w-6xl mx-auto text-center mb-8">
         <h2 className="text-2xl font-bold">{t("What Our Users Say")}</h2>
       </div>

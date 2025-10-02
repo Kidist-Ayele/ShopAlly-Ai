@@ -15,7 +15,7 @@ export default function Header() {
   const { t } = useLanguage();
   const router = useRouter();
 
-  const navItems = ["Features", "How It Works", "Demo", "Testimonials", "Download"];
+  const navItems = ["Features", "How It Works", "Testimonials", "Download"];
 
   const scrollToSection = (id: string) => {
     const section = document.getElementById(id);
